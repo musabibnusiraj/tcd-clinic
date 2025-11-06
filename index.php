@@ -763,6 +763,11 @@
                                     Contact
                                 </a>
                             </li>
+                            <li>
+                                <a href="login.php" class="text-gray-400 hover:text-blue-400 transition duration-300">
+                                    Admin Login
+                                </a>
+                            </li>
                         </ul>
                     </div>
                     <div>
