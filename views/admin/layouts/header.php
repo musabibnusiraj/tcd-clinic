@@ -100,7 +100,7 @@ $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
                     <!-- Doctors -->
                     <li class="menu-item  <?= $currentFilename === "users.php" ? 'active' : '' ?> ">
                         <a href="../admin/users.php" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-plus-medical"></i>
+                            <i class="menu-icon tf-icons bx bx-user"></i>
                             <div data-i18n="Analytics">Users</div>
                         </a>
                     </li>
