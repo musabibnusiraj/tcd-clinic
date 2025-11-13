@@ -11,6 +11,7 @@ try {
     // Retrieve submitted credentials from the POST request (use null coalescing to avoid notices)
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
+    $remember = isset($_POST['remember']) ? true : false;
 
     // Basic validation: ensure both fields are provided
     if (empty($email) || empty($password)) {
@@ -34,6 +35,16 @@ try {
             $sm->setAttribute("userId", $user['id']);
             $sm->setAttribute("username", $user['username']);
             $sm->setAttribute("permission", $user['permission']);
+
+            if ($remember) {
+                $cookie_time = time() + (30 * 24 * 60 * 60); // 30 days
+                setcookie('remember_email', $email, $cookie_time, '/', '', false, true);
+            } else {
+                // Clear remember me cookies if unchecked
+                if (isset($_COOKIE['remember_email'])) {
+                    setcookie('remember_email', '', time() - 3600, '/', '', false, true);
+                }
+            }
 
             // Redirect to the main application page
             header('Location: ../app.php');

@@ -145,16 +145,11 @@ $sm = AppManager::getSM();
                                     class="form-control"
                                     id="email"
                                     name="email"
+                                    value="<?= isset($_COOKIE['remember_email']) ? htmlspecialchars($_COOKIE['remember_email']) : '' ?>"
                                     placeholder="Enter your email"
                                     autofocus />
                             </div>
                             <div class="mb-3 form-password-toggle">
-                                <!-- <div class="d-flex justify-content-between">
-                                    <label class="form-label" for="password">Password</label>
-                                    <a href="auth-forgot-password-basic.html">
-                                        <small>Forgot Password?</small>
-                                    </a>
-                                </div> -->
                                 <div class="input-group input-group-merge">
                                     <input
                                         type="password"
@@ -168,7 +163,7 @@ $sm = AppManager::getSM();
                             </div>
                             <div class="mb-3">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="remember-me" />
+                                    <input <?= isset($_COOKIE['remember_email']) ? 'checked' : '' ?> class="form-check-input" type="checkbox" id="remember-me" name="remember" />
                                     <label class="form-check-label" for="remember-me"> Remember Me </label>
                                 </div>
                             </div>
