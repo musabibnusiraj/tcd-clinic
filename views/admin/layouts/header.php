@@ -1,4 +1,7 @@
 <?php
+include __DIR__ . '/../../../config.php';
+include BASE_PATH . '/helpers/AppManager.php';
+
 // Extract the last filename from the URL
 $currentUrl = $_SERVER['SCRIPT_NAME'];
 $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
@@ -66,7 +69,7 @@ $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
 
             <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
                 <div class="app-brand demo">
-                    <a href="index.html" class="app-brand-link">
+                    <a href="<?= url('index.php') ?>" class="app-brand-link">
                         <span class="app-brand-logo demo">
 
                         </span>
@@ -83,7 +86,7 @@ $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
                 <ul class="menu-inner py-1">
                     <!-- Dashboard -->
                     <li class="menu-item  <?= $currentFilename === "dashboard.php" ? 'active' : '' ?> ">
-                        <a href="../admin/dashboard.php" class="menu-link">
+                        <a href="<?= url('views/admin/dashboard.php') ?>" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-home-circle"></i>
                             <div data-i18n="Analytics">Dashboard</div>
                         </a>
@@ -91,7 +94,7 @@ $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
 
                     <!-- Doctors -->
                     <li class="menu-item  <?= $currentFilename === "doctors.php" ? 'active' : '' ?> ">
-                        <a href="../admin/doctors.php" class="menu-link">
+                        <a href="<?= url('views/admin/doctors.php') ?>" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-plus-medical"></i>
                             <div data-i18n="Analytics">Doctors</div>
                         </a>
@@ -99,7 +102,7 @@ $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
 
                     <!-- Doctors -->
                     <li class="menu-item  <?= $currentFilename === "users.php" ? 'active' : '' ?> ">
-                        <a href="../admin/users.php" class="menu-link">
+                        <a href="<?= url('views/admin/users.php') ?>" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-user"></i>
                             <div data-i18n="Analytics">Users</div>
                         </a>

@@ -67,19 +67,6 @@ CREATE TABLE `appointments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 --
--- Dumping data for table `appointments`
---
-
-INSERT INTO `appointments` (`id`, `appointment_no`, `patient_name`, `address`, `telephone`, `email`, `nic`, `doctor_id`, `time_slot_from`, `time_slot_to`, `appointment_date`, `treatment_id`, `created_at`, `updated_at`) VALUES
-(102, '1700533506', 'Alen', '123,ParkStreet', '09820998209', 'solomanv@test.com', '963331234Vasd', 1, '18:00:00', '19:00:00', '2023-11-27', 1, '2023-11-21 02:25:27', '2023-11-22 17:12:00'),
-(103, '1700676156', 'Test', 'asd', '09820998209', 'solomanv@test.com', '963331234V', 1, '19:00:00', '20:00:00', '2023-11-27', 3, '2023-11-22 18:02:58', '2023-11-22 18:02:58'),
-(104, '1700676181', 'Test Patient MM', '123,ParkStreet', '09820998209', 'solomanv@test.com', '963331738V', 1, '20:00:00', '21:00:00', '2023-11-27', 4, '2023-11-22 18:03:14', '2023-11-22 18:03:14'),
-(105, '1700676201', 'Testing  mm', 'm', '0981123', 'asd@asd', '963331738V', 1, '19:00:00', '20:00:00', '2023-12-03', 5, '2023-11-22 18:03:38', '2023-11-22 18:03:38'),
-(106, '1700676658', 'Testing AA', '116B al-hasanath road', '+94755513162', 'musab.dot@gmail.com', '963331738V', 1, '18:00:00', '19:00:00', '2023-12-04', 2, '2023-11-22 18:11:14', '2023-11-22 18:11:14');
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `doctors`
 --
 
@@ -145,20 +132,6 @@ CREATE TABLE `payments` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
-
---
--- Dumping data for table `payments`
---
-
-INSERT INTO `payments` (`id`, `appointment_id`, `registration_fee`, `registration_fee_paid`, `treatment_fee`, `quantity`, `treatment_fee_paid`, `created_at`, `updated_at`) VALUES
-(7, 102, 500, 1, 5000, 1, 1, '2023-11-21 02:25:27', '2023-11-21 02:41:47'),
-(8, 103, 1000, 1, 5000, 4, 1, '2023-11-22 18:02:58', '2023-11-22 18:33:58'),
-(9, 104, 1000, 1, 8000, 2, 0, '2023-11-22 18:03:14', '2023-11-22 18:18:41'),
-(10, 105, 1000, 1, 9000, 4, 1, '2023-11-22 18:03:38', '2023-11-22 18:33:06'),
-(11, 106, 1000, 1, 6000, 1, 0, '2023-11-22 18:11:14', '2023-11-22 18:11:14');
-
--- --------------------------------------------------------
-
 --
 -- Table structure for table `treatments`
 --
@@ -302,7 +275,3 @@ ALTER TABLE `doctor_availability`
 ALTER TABLE `payments`
   ADD CONSTRAINT `fk_payments_appointment_id` FOREIGN KEY (`appointment_id`) REFERENCES `appointments` (`id`);
 COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
