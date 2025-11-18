@@ -62,7 +62,8 @@ include BASE_PATH . '/models/User.php';
                                     </button>
                                     <div class="dropdown-menu">
                                         <a class="dropdown-item" href="javascript:void(0);"><i class="bx bx-edit-alt me-1"></i> Edit</a>
-                                        <a class="dropdown-item" href="javascript:void(0);"><i class="bx bx-trash me-1"></i> Delete</a>
+                                        <a class="dropdown-item delete-user-btn" data-permission="<?= $user['permission']; ?>" data-id="<?= $user['id']; ?>"><i class="bx bx-trash me-1"></i> Delete</a>
+
                                     </div>
                                 </div>
                             </td>
@@ -81,7 +82,7 @@ include BASE_PATH . '/models/User.php';
 <div class="modal fade" id="createNewUser" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form id="create-form" action="<?= url('services/ajax_functions.php') ?>" enctype="multipart/form-data">
+            <form id="create-form" action="<?= url('services/user/ajax_fn.php') ?>" enctype="multipart/form-data">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel1">Add New User</h5>
                     <button

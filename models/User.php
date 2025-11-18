@@ -85,6 +85,7 @@ class User extends BaseModel
 
     public function getUserByUsernameOrEmail($username, $email)
     {
+        $email = strtolower($email);
         $param = array(
             ':username' => $username,
             ':email' => $email
@@ -117,7 +118,7 @@ class User extends BaseModel
         $user->username = $username;
         $user->password = $password;
         $user->permission = $permission;
-        $user->email = $email;
+        $user->email = strtolower($email);
         $user->is_active = $is_active;
         $user->addNewRec();
 

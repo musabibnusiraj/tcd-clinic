@@ -92,7 +92,7 @@ $(document).ready(function () {
     $('.delete-user-btn').on('click', async function () {
         var user_id = $(this).data('id');
         var permission = $(this).data('permission');
-        var is_confirm = confirm('Are you sure,Do you want to delete?');
+        var is_confirm = confirm('Are you sure, Do you want to delete? ');
         if (is_confirm) await deleteById(user_id, permission);
     })
 
@@ -256,12 +256,12 @@ async function getUserById(id) {
 
 
 async function deleteById(id, permission) {
-    var url = $('#update-form').attr('action');
+    var url = $('#create-form').attr('action');
 
     // Perform AJAX request
     $.ajax({
         url: url,
-        type: 'GET',
+        type: 'POST',
         data: {
             user_id: id,
             action: 'delete_user',
