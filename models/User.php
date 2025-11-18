@@ -104,10 +104,10 @@ class User extends BaseModel
 
     function createUser($username, $password, $permission, $email, $is_active = 1)
     {
-        $userModel = new User();
-
+        $user = new User();
         // Check if username or email already exists
-        $existingUser = $userModel->getUserByUsernameOrEmail($username, $email);
+        $existingUser = $user->getUserByUsernameOrEmail($username, $email);
+
         if ($existingUser) {
             // Handle the error (return an appropriate message or throw an exception)
             return false; // Or throw an exception with a specific error message
