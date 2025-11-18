@@ -89,11 +89,21 @@ $(document).ready(function () {
         await getUserById(user_id);
     })
 
-    $('.delete-user-btn').on('click', async function () {
+    // use bootstrap modal rather than native confirm
+    $('.delete-user-btn').on('click', function () {
         var user_id = $(this).data('id');
         var permission = $(this).data('permission');
-        var is_confirm = confirm('Are you sure, Do you want to delete? ');
-        if (is_confirm) await deleteById(user_id, permission);
+
+        // set modal hidden inputs so confirm button can read them
+        $('#delete_user_id').val(user_id);
+        $('#delete_user_permission').val(permission);
+
+        // clear any previous alerts
+        $('#delete-alert-container').empty();
+
+        // show the modal
+        var deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        deleteModal.show();
     })
 
     $('#update-user').on('click', function () {
@@ -259,7 +269,7 @@ async function deleteById(id, permission) {
     var url = $('#create-form').attr('action');
 
     // Perform AJAX request
-    $.ajax({
+    return $.ajax({
         url: url,
         type: 'POST',
         data: {
@@ -287,3 +297,30 @@ async function deleteById(id, permission) {
         }
     });
 }
+
+// handle confirm delete button in modal
+$('#confirmDeleteBtn').on('click', async function () {
+    var userId = $('#delete_user_id').val();
+    var permission = $('#delete_user_permission').val();
+    if (!userId) {
+        showAlert('Invalid user id.', 'danger', 'delete-alert-container');
+        return;
+    }
+
+    // disable button to prevent duplicate clicks
+    var $btn = $(this);
+    $btn.prop('disabled', true).text('Deleting...');
+
+    // deleteById() method, which now returns the jqXHR promise
+    var ajax = deleteById(userId, permission);
+    ajax.done(function (response) {
+        // modal will stay open if operation failed; otherwise page reload happens from deleteById
+        if (!response.success) {
+            // show the alert (deleteById already does this); re-enable button to let user retry
+            $btn.prop('disabled', false).text('Delete');
+        }
+    }).fail(function (jqXHR) {
+        showAlert('Something went wrong..!', 'danger', 'delete-alert-container');
+        $btn.prop('disabled', false).text('Delete');
+    });
+});
