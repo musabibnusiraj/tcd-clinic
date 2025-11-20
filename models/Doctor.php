@@ -61,6 +61,7 @@ class Doctor extends BaseModel
 
     function updateDoctor($id, $name = null, $about = null, $user_id = null, $photo = null, $is_active = null)
     {
+
         // Initialize the Doctor model
         $doctorModel = new Doctor();
 
@@ -71,25 +72,30 @@ class Doctor extends BaseModel
             return false; // Doctor not found
         }
 
+        $doctorModel->id = $id;
+        $doctorModel->user_id = $existingDoctor['user_id'];
+        $doctorModel->is_active = $existingDoctor['is_active'];
+        $doctorModel->photo = $existingDoctor['photo'];
+
         // Update properties only if values are provided
         if ($name !== null) {
-            $existingDoctor->name = $name;
+            $doctorModel->name = $name;
         }
+
         if ($about !== null) {
-            $existingDoctor->about = $about;
+            $doctorModel->about = $about;
         }
-        if ($user_id !== null) {
-            $existingDoctor->user_id = $user_id;
-        }
+
         if ($photo !== null) {
-            $existingDoctor->photo = $photo;
+            $doctorModel->photo = $photo;
         }
+
         if ($is_active !== null) {
-            $existingDoctor->is_active = $is_active;
+            $doctorModel->is_active = $is_active;
         }
 
         // Save the changes
-        $updated = $existingDoctor->save(); // Assuming save method exists
+        $updated = $doctorModel->save(); // Assuming save method exists
 
         return $updated ? true : false;
     }

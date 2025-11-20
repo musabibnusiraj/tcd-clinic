@@ -294,7 +294,6 @@ include BASE_PATH . '/models/User.php';
                     </div>
                     <div class="mb-3 mt-3">
                         <div id="edit-additional-fields">
-
                         </div>
                     </div>
                     <div class="mb-3 mt-3">

@@ -146,6 +146,11 @@ if (isset($_POST['action'])) {
                 $is_active = $_POST['is_active'] == 1 ? 1 : 0;
                 $id = $_POST['id'];
 
+                $doctor_id = $_POST['doctor_id'] ?? '';
+                $doctor_name = $_POST['doctor_name'] ?? '';
+                $about_doctor = $_POST['about_doctor'] ?? '';
+                $image = $_POST['image'] ?? '';
+
                 // Validate inputs
                 if (empty($username) || empty($email) || empty($password) || empty($cpassword)) {
                     echo json_encode(['success' => false, 'message' => 'Required fields are missing!']);
@@ -167,6 +172,12 @@ if (isset($_POST['action'])) {
                 $userModel = new User();
                 $updated =  $userModel->updateUser($id, $username, $password, $permission, $email, $is_active);
                 if ($updated) {
+                    if ($permission == 'doctor') {
+                        $user_id = $id;
+                        $doctorModel = new Doctor();
+                        $doctorCreated =  $doctorModel->updateDoctor($doctor_id ?? null, $doctor_name,  $about_doctor, $user_id, null, null);
+                    }
+
                     echo json_encode(['success' => true, 'message' => "User updated successfully!"]);
                 } else {
                     echo json_encode(['success' => false, 'message' => 'Failed to update user. May be user already exist!']);
@@ -188,7 +199,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['user_id']) && isset($_G
         $user = $userModel->getUserWithDoctorById($user_id);
 
         if ($user) {
-            echo json_encode(['success' => true, 'message' => "User  successfully!", 'data' => $user]);
+            echo json_encode(['success' => true, 'message' => "User data retrieved  successfully!", 'data' => $user]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Failed to create user. May be user already exist!']);
         }
