@@ -159,6 +159,11 @@ include BASE_PATH . '/models/User.php';
                     </div>
 
                     <div class="mb-3 mt-3">
+                        <div id="additional-fields">
+                        </div>
+                    </div>
+
+                    <div class="mb-3 mt-3">
                         <div id="alert-container"></div>
                     </div>
                 </div>
