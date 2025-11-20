@@ -22,6 +22,7 @@ if (isset($_POST['action'])) {
 
                 $doctor_name = $_POST['doctor_name'] ?? null;
                 $about_doctor = $_POST['about_doctor'] ?? null;
+                $cpassword = $_POST['confirm_password'] ?? "";
 
                 // Validate inputs
                 if (empty($username) || empty($email) || empty($password) || empty($cpassword)) {
