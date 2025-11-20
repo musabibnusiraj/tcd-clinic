@@ -66,16 +66,18 @@ class Doctor extends BaseModel
         $doctorModel = new Doctor();
 
         // Retrieve the doctor by ID
-        $existingDoctor = $doctorModel->getById($id); // Assuming findById method exists
+        $existingDoctor = $doctorModel->getById($id); // Assuming getById method exists
 
         if (!$existingDoctor) {
             return false; // Doctor not found
         }
 
-        $doctorModel->id = $id;
-        $doctorModel->user_id = $existingDoctor['user_id'];
-        $doctorModel->is_active = $existingDoctor['is_active'];
-        $doctorModel->photo = $existingDoctor['photo'];
+        // Set all properties from the array data to the object
+        foreach ($existingDoctor as $key => $value) {
+            if (property_exists($doctorModel, $key)) {
+                $doctorModel->$key = $value;
+            }
+        }
 
         // Update properties only if values are provided
         if ($name !== null) {
