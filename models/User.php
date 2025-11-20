@@ -179,7 +179,7 @@ class User extends BaseModel
     {
         $param = array(':id' => $id);
         return $this->pm->run("
-            SELECT users.*, doctors.id AS doctor_id, doctors.*,users.id AS id
+            SELECT users.id,users.username,users.email,users.is_active,users.permission, doctors.id AS doctor_id, doctors.name,doctors.about,doctors.photo,doctors.is_active as doctor_is_active
             FROM " . $this->getTableName() . " AS users
             LEFT JOIN doctors ON doctors.user_id = users.id
             WHERE users.id = :id

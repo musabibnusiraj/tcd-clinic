@@ -111,6 +111,7 @@ $(document).ready(function () {
             showAlert('Passwords do not match..!', 'danger', 'edit-alert-container'); // Prevent form submission if passwords do not match
             return;
         }
+        //
         // Get the form element
         var form = $('#update-form')[0];
         form.reportValidity();
@@ -208,11 +209,11 @@ async function getUserById(id) {
                 var doctorPhoto = response.data.photo;
                 var doctorAbout = response.data.about;
 
-                $('#edit-user-modal #user_id').val(user_id);
-                $('#edit-user-modal #user-name').val(username);
-                $('#edit-user-modal #email').val(email);
-                $('#edit-user-modal #edit_permission option[value="' + permission + '"]').prop('selected', true);
-                $('#edit-user-modal #is_active option[value="' + is_active + '"]').prop('selected', true);
+                $('#editUserModel #user_id').val(user_id);
+                $('#editUserModel #user-name').val(username);
+                $('#editUserModel #email').val(email);
+                $('#editUserModel #edit_permission option[value="' + permission + '"]').prop('selected', true);
+                $('#editUserModel #is_active option[value="' + is_active + '"]').prop('selected', true);
 
                 if (permission === 'doctor') {
 
@@ -241,16 +242,13 @@ async function getUserById(id) {
                             '<img src="' + doctorPhotoPath + doctorPhoto + '" alt="user-avatar" class="d-block rounded m-3" width="80" id="uploadedAvatar">' :
                             '<img src="assets/img/avatars/1.png" alt="user-avatar" class="d-block rounded m-3" width="80" id="uploadedAvatar">'
                         ) +
-                        // File input for updating photo
-                        '<input class="form-control mt-2" name="image" id="image" type="file" accept="image/*">' +
-                        '</div>' +
-
                         '</div>'
                     );
                 } else {
                     $('#edit-additional-fields').empty();
                 }
-                $('#edit-user-modal').modal('show');
+                //
+                $('#editUserModel').modal('show');
             }
         },
         error: function (error) {

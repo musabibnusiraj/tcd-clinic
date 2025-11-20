@@ -56,16 +56,18 @@ include BASE_PATH . '/models/User.php';
                                 <span class="badge bg-<?= $user['is_active'] == 1 ? 'success' : 'danger'; ?>"><?= $user['is_active'] == 1 ? 'Active' : ' Inactive'; ?></span>
                             </td>
                             <td>
-                                <div class="dropdown">
-                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                        <i class="bx bx-dots-vertical-rounded"></i>
-                                    </button>
-                                    <div class="dropdown-menu">
-                                        <a class="dropdown-item" href="javascript:void(0);"><i class="bx bx-edit-alt me-1"></i> Edit</a>
-                                        <a class="dropdown-item delete-user-btn" data-permission="<?= $user['permission']; ?>" data-id="<?= $user['id']; ?>"><i class="bx bx-trash me-1"></i> Delete</a>
+                                <?php if ($user['id'] != $userId) { ?>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a class="dropdown-item edit-user-btn" href="javascript:void(0);" data-id="<?= $user['id']; ?>"><i class="bx bx-edit-alt me-1"></i> Edit</a>
+                                            <a class="dropdown-item delete-user-btn" data-permission="<?= $user['permission']; ?>" data-id="<?= $user['id']; ?>"><i class="bx bx-trash me-1"></i> Delete</a>
 
+                                        </div>
                                     </div>
-                                </div>
+                                <?php } ?>
                             </td>
                         </tr>
                     <?php
@@ -196,6 +198,116 @@ include BASE_PATH . '/models/User.php';
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Udpate Modal -->
+<div class="modal fade" id="editUserModel" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form id="update-form" action="<?= url('services/user/ajax_fn.php') ?>" enctype="multipart/form-data">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalCenterTitle">Update User</h5>
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="update_user">
+                    <input type="hidden" id="user_id" name="id" value="">
+                    <div class="row">
+                        <div class="col mb-3">
+                            <label for="nameWithTitle" class="form-label">User Name</label>
+                            <input
+                                type="text"
+                                required
+                                id="user-name"
+                                name="user_name"
+                                class="form-control"
+                                placeholder="Enter Name" />
+                        </div>
+                    </div>
+                    <div class="row ">
+                        <div class="col mb-3">
+                            <label for="emailWithTitle" class="form-label">Email</label>
+                            <input
+                                required
+                                type="text"
+                                name="email"
+                                id="email"
+                                class="form-control"
+                                placeholder="xxxx@xxx.xx" />
+                        </div>
+                    </div>
+
+
+                    <div class="row gy-2">
+                        <div class="col orm-password-toggle">
+                            <label class="form-label" for="basic-default-password1">Password</label>
+                            <div class="input-group">
+                                <input
+                                    type="password"
+                                    required
+                                    name="password"
+                                    class="form-control"
+                                    id="password"
+                                    placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                                    aria-describedby="basic-default-password1" />
+                                <span id="basic-default-password1" class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                            </div>
+                        </div>
+                        <div class="col form-password-toggle">
+                            <label class="form-label" for="basic-default-password2">Confirm Password</label>
+                            <div class="input-group">
+                                <input
+                                    type="password"
+                                    required
+                                    name="confirm_password"
+                                    class="form-control"
+                                    id="confirm-password"
+                                    placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                                    aria-describedby="basic-default-password2" />
+                                <span id="basic-default-password2" class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row ">
+                        <div class="mb-3">
+                            <label for="exampleFormControlSelect1" class="form-label">Role</label>
+                            <select class="form-select" id="edit_permission" aria-label="Default select example" name="permission" required>
+                                <option value="operator">Operator</option>
+                                <option value="doctor">Doctor</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row ">
+                        <div class="mb-3">
+                            <label for="exampleFormControlSelect1" class="form-label">Status</label>
+                            <select class="form-select" id="is_active" aria-label="Default select example" id="is_active" name="is_active" required>
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <div id="edit-additional-fields">
+
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <div id="edit-alert-container"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Close
+                    </button>
+                    <button type="button" class="btn btn-primary" id="update-user">Update</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
