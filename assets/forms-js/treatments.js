@@ -7,6 +7,7 @@ $(document).ready(function () {
         var url = $('#create-form').attr('action');
         if (form.checkValidity() && form.reportValidity()) {
             var formData = new FormData(form);
+
             // Perform AJAX request
             $.ajax({
                 url: url,
@@ -49,9 +50,19 @@ $(document).ready(function () {
 
     $('.delete-treatment-btn').on('click', async function () {
         var id = $(this).data('id');
-        var is_confirm = confirm('Are you sure,Do you want to delete?');
-        if (is_confirm) await deleteById(id);
+
+        $('#deleteConfirmModal #delete_treatment_id').val(id);
+        $('#deleteConfirmModal').modal('show');
+
+        // var is_confirm = confirm('Are you sure,Do you want to delete?');
+        // if (is_confirm) await deleteById(id);
     })
+
+    $('#confirmDeleteBtn').on('click', async function () {
+        var id = $('#delete_treatment_id').val();
+        await deleteById(id);
+    });
+
 
     $('#update-treatment').on('click', function () {
 
@@ -111,8 +122,7 @@ async function getById(id) {
         }, // Form data
         dataType: 'json',
         success: function (response) {
-            console.log(response);
-
+            // console.log(response);
             showAlert(response.message, response.success ? 'primary' : 'danger');
             if (response.success) {
 
@@ -145,6 +155,10 @@ async function getById(id) {
 }
 
 async function deleteById(id) {
+
+    // disable button to prevent duplicate clicks
+    $('#confirmDeleteBtn').prop('disabled', true).text('Deleting...');
+
     var url = $('#update-form').attr('action');
 
     // Perform AJAX request
@@ -159,7 +173,9 @@ async function deleteById(id) {
         success: function (response) {
             if (response.success) {
                 setTimeout(function () {
+                    $('#confirmDeleteBtn').prop('disabled', false).text('Delete');
                     location.reload();
+
                 }, 1000);
             } else {
                 showAlert(response.message, response.success ? 'primary' : 'danger', 'delete-alert-container');
