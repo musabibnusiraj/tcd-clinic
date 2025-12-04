@@ -109,16 +109,16 @@ if (isset($_POST['action'])) {
                 $permission = $_POST['permission'];
 
                 $userModel = new User();
-                // $doctorModel = new Doctor();
+                $doctorModel = new Doctor();
 
-                // // Check permission and delete doctor if necessary
-                // if ($permission == 'doctor') {
-                //     $doctorDeleted = $doctorModel->deleteDoctorByUserId($user_id);
-                //     if ($doctorDeleted === false) {
-                //         echo json_encode(['success' => false, 'message' => 'Doctor has appointments and cannot be deleted.']);
-                //         exit;
-                //     }
-                // }
+                // Check permission and delete doctor if necessary
+                if ($permission == 'doctor') {
+                    $doctorDeleted = $doctorModel->deleteDoctorByUserId($user_id);
+                    if ($doctorDeleted === false) {
+                        echo json_encode(['success' => false, 'message' => 'Doctor has appointments and cannot be deleted.']);
+                        exit;
+                    }
+                }
 
                 // Proceed to delete the user if doctor deletion was successful or not needed
                 $userDeleted = $userModel->deleteUser($user_id);

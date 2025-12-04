@@ -5,161 +5,392 @@ require_once __DIR__ . '/../models/Doctor.php';
 require_once __DIR__ . '/../models/Treatment.php';
 
 /**
- * Class AppointmentScheduler
+ * AppointmentScheduler - Manages doctor appointment scheduling and availability
  * 
- * This class is responsible for scheduling and managing appointments for a doctor.
+ * This class handles:
+ * - Displaying available appointment slots for a specific doctor
+ * - Checking slot availability against existing appointments
+ * - Generating weekly schedule view
+ * - Managing time slot conflicts
  */
 class AppointmentScheduler
 {
-    // Properties to store various parameters and data needed for appointment scheduling.
+    /** @var int Doctor's unique identifier */
     private $doctorId;
+
+    /** @var string Week selection in format 'YYYY-WW' */
     private $weekInputValue;
+
+    /** @var DateTime First day of the selected week */
     private $firstDayOfWeek;
+
+    /** @var array Days of the week (e.g., ['Monday', 'Tuesday', ...]) */
     public $days;
+
+    /** @var array Doctor's available time slots from database */
     private $availableSlots;
+
+    /** @var DateTime Current date and time */
     private $today;
+
+    /** @var array All existing appointments for this doctor */
     private $existingAppointments;
+
+    /** @var DateInterval Duration of each appointment slot (e.g., 30 minutes) */
     private $slotDuration;
 
     /**
-     * Constructor for the AppointmentScheduler class.
+     * Initialize the appointment scheduler
      * 
-     * @param int        $doctorId              The ID of the doctor.
-     * @param string     $weekInputValue        The input value representing the week in "YYYY-WW" format.
-     * @param array      $days                  Array of days in the week.
-     * @param array      $availableSlots        Array of available time slots.
-     * @param DateTime   $today                 Current date and time.
-     * @param array      $existingAppointments  Array of existing appointments.
-     * @param string     $slotDuration          Duration of each time slot.
+     * Now handles all data fetching internally for better encapsulation.
+     * The view layer only needs to provide the doctor ID and week selection.
+     * 
+     * @param int    $doctorId         Doctor's ID
+     * @param string $weekInputValue   Week in 'YYYY-WW' format (e.g., '2025-W01')
      */
-    public function __construct($doctorId, $weekInputValue, $days, $availableSlots, $today, $existingAppointments, $slotDuration)
+    public function __construct($doctorId, $weekInputValue)
     {
-        // Assign provided values to class properties.
         $this->doctorId = $doctorId;
         $this->weekInputValue = $weekInputValue;
-        $this->days = $days;
-        $this->availableSlots = $availableSlots;
-        $this->today = $today;
-        $this->existingAppointments = $existingAppointments;
-        $this->slotDuration = new DateInterval($slotDuration); // Convert slot duration to DateInterval.
 
-        // Initialize the object.
-        $this->initialize();
+        // Initialize current date for validation
+        $this->today = new DateTime();
+
+        // Get days of the week
+        $this->days = $this->getDays();
+
+        // Convert slot duration from constant to DateInterval
+        $this->slotDuration = new DateInterval(SLOT_DURATION);
+
+        // Calculate the first day of the selected week
+        $this->calculateWeekStart();
+
+        // Fetch all necessary data from database
+        $this->loadData();
     }
 
     /**
-     * Initialize method to set up the first day of the week based on the provided week input value.
+     * Load all required data from the database
+     * 
+     * This method encapsulates all data fetching logic, keeping it
+     * separate from the view layer and making the class more self-contained.
      */
-    private function initialize()
+    private function loadData()
     {
-        // Extract year and week from the input value in "YYYY-WW" format.
+        // Fetch doctor's availability slots
+        $doctorAvailabilityModel = new DoctorAvailability();
+        $this->availableSlots = $doctorAvailabilityModel->getAllActiveByDoctorId($this->doctorId);
+
+        // Fetch existing appointments for this doctor
+        $appointmentModel = new Appointment();
+        $this->existingAppointments = $appointmentModel->getAllByColumnValue('doctor_id', $this->doctorId);
+    }
+
+    /**
+     * Calculate the first day (Monday) of the selected week
+     * 
+     * Converts week input like '2025-W01' to actual date
+     */
+    private function calculateWeekStart()
+    {
+        // Parse year and week number from format 'YYYY-WW'
         list($year, $week) = sscanf($this->weekInputValue, "%d-W%d");
 
-        // Set the first day of the week using ISO week date.
+        // Create DateTime and set to Monday (day 1) of the ISO week
         $this->firstDayOfWeek = new DateTime();
         $this->firstDayOfWeek->setISODate($year, $week, 1);
     }
 
     /**
-     * Display the schedule of available appointments for a doctor.
+     * Display the complete appointment schedule
+     * 
+     * Main public method that renders the weekly schedule view
      */
     public function displaySchedule()
     {
-        // Create a Doctor model instance and fetch the doctor details by ID.
-        $doctorModel = new Doctor();
-        $doctor = $doctorModel->getById($this->doctorId);
+        // Fetch doctor information
+        $doctor = $this->getDoctorDetails();
 
+        // Render header with doctor info and back button
         echo $this->renderDoctorHeader($doctor);
 
-        // Output the appointment schedule section.
+        // Render the main schedule content
         echo '<section class="content m-3">';
         echo '<div class="container-fluid">';
 
-        if (!empty($this->availableSlots)) {
-            // Loop through available slots and check if they match the current day.
-
-            // Loop through each day in the week.
-            foreach ($this->days as $dayCount => $day) {
-
-                // Calculate the current date based on the first day of the week and the day count.
-                $currentDate = clone $this->firstDayOfWeek;
-                $currentDate->modify("+$dayCount days");
-
-                $currentDateFullString = $currentDate->format("l, F j, Y");
-                $currentDateString = $currentDate->format("Y-m-d");
-
-                foreach ($this->availableSlots as $slot) {
-                    $slotDay = $slot['day'] ?? "";
-
-                    if ($slotDay == $day) {
-                        $sessionFrom = new DateTime($slot['session_from']);
-                        $sessionTo = new DateTime($slot['session_to']);
-                        $currentSlot = clone $sessionFrom;
-
-                        // Output a row for each day with available slots.
-                        echo '<div class="row my-5 border rounded border-secondary"><h3 class="mt-4 text-capitalize">' . $currentDateFullString . '</h3>';
-
-                        // Loop through time slots for the current day.
-                        while ($currentSlot < $sessionTo) {
-                            $time_slot_from = $currentSlot->format('h:i A');
-                            $time_slot_to = $currentSlot->add($this->slotDuration)->format('h:i A');
-
-                            echo '<div class="col-3">';
-                            echo '<div class="card m-3 mb-5">';
-                            echo '<div class="card-body">';
-                            echo '<h5 class="card-title">Appointment Slot</h5>';
-                            echo '<p class="card-text">' . $time_slot_from . ' to ' . $time_slot_to . '</p>';
-
-                            $currentSlot->sub($this->slotDuration);
-                            $timeSlotFrom = $currentSlot->format('H:i:s');
-                            $timeSlotTo = $currentSlot->add($this->slotDuration)->format('H:i:s');
-
-                            // Check the availability of the time slot.
-                            if ($this->today > $currentDate) {
-                                echo '<button disabled class="btn btn-warning d-flex">Expired</button>';
-                            } else if ($this->isTimeSlotAvailable($timeSlotFrom, $this->existingAppointments, $currentDateString)) {
-                                echo '<button type="button" data-appointment-date="' . $currentDateString . '" data-time-slot-to="' . $timeSlotTo . '" data-time-slot-from="' . $timeSlotFrom . '" class="btn btn-primary active book-modal" data-bs-toggle="modal" data-bs-target="#appointmentModal">Available</button>';
-                            } else {
-                                echo '<button disabled class="btn btn-danger text-center">Booked</button>';
-                            }
-
-                            echo '</div>';
-                            echo '</div>';
-                            echo '</div>';
-                        }
-
-                        echo '</div>';
-                    }
-                }
-            }
+        if (empty($this->availableSlots)) {
+            echo $this->renderNoAvailabilityMessage();
         } else {
-            echo '<h1 class="card p-3 text-danger text-center">No doctor availabilities.</h1>';
+            $this->renderWeeklySchedule();
         }
 
-        // Close the HTML container tags.
         echo '</div>';
         echo '</section>';
         echo '</div>';
     }
 
     /**
-     * Renders the doctor header with their details.
-     *
-     * @param array $doctor The doctor details.
+     * Get doctor details from database
      * 
-     * @return string HTML output for the doctor header.
+     * @return array Doctor information
+     */
+    private function getDoctorDetails()
+    {
+        $doctorModel = new Doctor();
+        return $doctorModel->getById($this->doctorId);
+    }
+
+    /**
+     * Public getter for doctor details
+     * 
+     * Used by the view to populate the booking modal
+     * 
+     * @return array Doctor information
+     */
+    public function getDoctor()
+    {
+        return $this->getDoctorDetails();
+    }
+
+    /**
+     * Get all active treatments
+     * 
+     * Used by the view to populate the treatment dropdown in the booking modal
+     * 
+     * @return array List of active treatments
+     */
+    public function getTreatments()
+    {
+        $treatmentModel = new Treatment();
+        return $treatmentModel->getAllActive();
+    }
+
+    /**
+     * Render the weekly schedule with all available slots
+     */
+    private function renderWeeklySchedule()
+    {
+        // Iterate through each day of the week (Monday to Sunday)
+        foreach ($this->days as $dayIndex => $dayName) {
+            $date = $this->calculateDate($dayIndex);
+            $this->renderDaySchedule($dayName, $date);
+        }
+    }
+
+    /**
+     * Calculate date for a specific day in the week
+     * 
+     * @param int $dayIndex Day index (0 = Monday, 6 = Sunday)
+     * @return DateTime Date object for the day
+     */
+    private function calculateDate($dayIndex)
+    {
+        $date = clone $this->firstDayOfWeek;
+        $date->modify("+{$dayIndex} days");
+        return $date;
+    }
+
+    /**
+     * Render schedule for a specific day
+     * 
+     * @param string   $dayName Day of the week (e.g., 'Monday')
+     * @param DateTime $date    Date object for this day
+     */
+    private function renderDaySchedule($dayName, $date)
+    {
+        // Check if doctor has availability on this day
+        $daySlots = $this->getSlotsForDay($dayName);
+
+        if (empty($daySlots)) {
+            return; // No slots for this day, skip rendering
+        }
+
+        $dateFormatted = $date->format('l, F j, Y'); // e.g., 'Monday, January 1, 2025'
+        $dateString = $date->format('Y-m-d'); // e.g., '2025-01-01'
+
+        // Render day header
+        echo '<div class="row my-5 border rounded border-secondary">';
+        echo '<h3 class="mt-4 text-capitalize">' . $dateFormatted . '</h3>';
+
+        // Render all time slots for this day
+        foreach ($daySlots as $slot) {
+            $this->renderTimeSlots($slot, $date, $dateString);
+        }
+
+        echo '</div>';
+    }
+
+    /**
+     * Get availability slots for a specific day
+     * 
+     * @param string $dayName Day of the week
+     * @return array Slots available on this day
+     */
+    private function getSlotsForDay($dayName)
+    {
+        $slots = [];
+
+        foreach ($this->availableSlots as $slot) {
+            if (($slot['day'] ?? '') === $dayName) {
+                $slots[] = $slot;
+            }
+        }
+
+        return $slots;
+    }
+
+    /**
+     * Render individual time slots for a session
+     * 
+     * @param array    $slot       Availability slot data
+     * @param DateTime $date       Date for these slots
+     * @param string   $dateString Date in 'Y-m-d' format
+     */
+    private function renderTimeSlots($slot, $date, $dateString)
+    {
+        $sessionStart = new DateTime($slot['session_from']);
+        $sessionEnd = new DateTime($slot['session_to']);
+        $currentSlot = clone $sessionStart;
+
+        // Generate slots from session start to session end
+        while ($currentSlot < $sessionEnd) {
+            $slotData = $this->prepareSlotData($currentSlot, $date, $dateString);
+            $this->renderSlotCard($slotData);
+
+            // Move to next slot
+            $currentSlot->add($this->slotDuration);
+        }
+    }
+
+    /**
+     * Prepare data for a single time slot
+     * 
+     * @param DateTime $slotTime   Current slot time
+     * @param DateTime $date       Date of the slot
+     * @param string   $dateString Date string for comparison
+     * @return array Slot data for rendering
+     */
+    private function prepareSlotData($slotTime, $date, $dateString)
+    {
+        // Clone to avoid modifying original
+        $slotStart = clone $slotTime;
+        $slotEnd = clone $slotTime;
+        $slotEnd->add($this->slotDuration);
+
+        return [
+            'displayFrom' => $slotStart->format('h:i A'), // e.g., '09:00 AM'
+            'displayTo' => $slotEnd->format('h:i A'),     // e.g., '09:30 AM'
+            'dbFrom' => $slotStart->format('H:i:s'),      // e.g., '09:00:00'
+            'dbTo' => $slotEnd->format('H:i:s'),          // e.g., '09:30:00'
+            'date' => $dateString,
+            'status' => $this->getSlotStatus($slotStart, $date, $dateString)
+        ];
+    }
+
+    /**
+     * Determine the status of a time slot
+     * 
+     * @param DateTime $slotTime   Slot start time
+     * @param DateTime $date       Date of the slot
+     * @param string   $dateString Date in string format
+     * @return string Status: 'expired', 'available', or 'booked'
+     */
+    private function getSlotStatus($slotTime, $date, $dateString)
+    {
+        // Check if date is in the past
+        if ($this->today > $date) {
+            return 'expired';
+        }
+
+        // Check if slot is already booked
+        $timeString = $slotTime->format('H:i:s');
+        if ($this->isTimeSlotAvailable($timeString, $this->existingAppointments, $dateString)) {
+            return 'available';
+        }
+
+        return 'booked';
+    }
+
+    /**
+     * Render a single appointment slot card
+     * 
+     * @param array $slot Slot data including time, date, and status
+     */
+    private function renderSlotCard($slot)
+    {
+        echo '<div class="col-3">';
+        echo '<div class="card m-3 mb-5">';
+        echo '<div class="card-body">';
+        echo '<h5 class="card-title">Appointment Slot</h5>';
+        echo '<p class="card-text">' . $slot['displayFrom'] . ' to ' . $slot['displayTo'] . '</p>';
+
+        // Render button based on slot status
+        echo $this->renderSlotButton($slot);
+
+        echo '</div>';
+        echo '</div>';
+        echo '</div>';
+    }
+
+    /**
+     * Render the appropriate button for a slot based on its status
+     * 
+     * @param array $slot Slot data
+     * @return string HTML for the button
+     */
+    private function renderSlotButton($slot)
+    {
+        switch ($slot['status']) {
+            case 'expired':
+                return '<button disabled class="btn btn-warning">Expired</button>';
+
+            case 'available':
+                return sprintf(
+                    '<button type="button" data-appointment-date="%s" data-time-slot-from="%s" data-time-slot-to="%s" class="btn btn-primary active book-modal" data-bs-toggle="modal" data-bs-target="#appointmentModal">Available</button>',
+                    $slot['date'],
+                    $slot['dbFrom'],
+                    $slot['dbTo']
+                );
+
+            case 'booked':
+            default:
+                return '<button disabled class="btn btn-danger">Booked</button>';
+        }
+    }
+
+    /**
+     * Render message when no availability exists
+     * 
+     * @return string HTML message
+     */
+    private function renderNoAvailabilityMessage()
+    {
+        return '<h1 class="card p-3 text-danger text-center">No doctor availabilities.</h1>';
+    }
+
+    /**
+     * Render doctor information header
+     * 
+     * Displays doctor's name, bio, and back navigation button
+     *
+     * @param array $doctor Doctor details from database
+     * @return string HTML for the header section
      */
     private function renderDoctorHeader($doctor)
     {
+        $doctorName = htmlspecialchars($doctor['name'] ?? 'Unknown Doctor');
+        $doctorAbout = htmlspecialchars($doctor['about'] ?? '');
+        $backUrl = url('views/admin/available_channelings.php');
+
         return '<div class="container">
                     <div class="row">
                         <div class="col-8">
-                            <h2 class="mx- mt-5">' . ($doctor['name'] ?? "") . '</h2>
-                            <h5 class="mx- mb-3">' . ($doctor['about'] ?? "") . '</h5>
+                            <h2 class="mt-5">' . $doctorName . '</h2>
+                            <h5 class="mb-3">' . $doctorAbout . '</h5>
                         </div>
                         <div class="col-4">
                             <div class="form-group d-flex justify-content-end mx-5 my-5">
-                                <a href="' . url('views/admin/available_channelings.php') . '" class="btn btn-dark active">Back</a>
+                                <a href="' . $backUrl . '" class="btn btn-dark active">Back</a>
                             </div>
                         </div>
                     </div>
@@ -169,36 +400,63 @@ class AppointmentScheduler
 
 
     /**
-     * Check if a given time slot is available based on existing appointments.
+     * Check if a time slot is available (not booked)
+     * 
+     * Logic: A slot is available if it doesn't overlap with any existing appointment
+     * on the same date.
+     * 
+     * Overlap occurs when: !(slotEnd <= apptStart OR slotStart >= apptEnd)
+     * Simplified: NOT (slot ends before appointment starts OR slot starts after appointment ends)
      *
-     * @param string $timeSlot              The time slot to check.
-     * @param array  $existingAppointments  Array of existing appointments.
-     * @param string $currentDateString     The current date string.
-     *
-     * @return bool                         Returns true if the time slot is available; false otherwise.
+     * @param string $timeSlot             Time slot start (e.g., '09:00:00')
+     * @param array  $existingAppointments All booked appointments
+     * @param string $dateString           Date to check (e.g., '2025-01-15')
+     * @return bool True if available, false if booked
      */
-    private function isTimeSlotAvailable($timeSlot, $existingAppointments, $currentDateString)
+    private function isTimeSlotAvailable($timeSlot, $existingAppointments, $dateString)
     {
-        // Convert the provided time slot to DateTime objects
-        $slotFrom = new DateTime($timeSlot);
-        $slotTo = clone $slotFrom;
-        $slotTo->add(($this->slotDuration)); // Add the slot duration to get the end time
+        // Calculate slot time range
+        $slotStart = new DateTime($timeSlot);
+        $slotEnd = clone $slotStart;
+        $slotEnd->add($this->slotDuration);
 
-        // Iterate through existing appointments to check for conflicts
+        // Check each appointment for conflicts
         foreach ($existingAppointments as $appointment) {
-            // Convert existing appointment time slots to DateTime objects
-            $appointmentFrom = new DateTime($appointment['time_slot_from']);
-            $appointmentTo = new DateTime($appointment['time_slot_to']);
-            $appointmentDate = $appointment['appointment_date'] ?? null;
+            // Skip appointments on different dates
+            if ($appointment['appointment_date'] !== $dateString) {
+                continue;
+            }
 
-            // Check for time slot conflicts
-            if (!($slotTo <= $appointmentFrom || $slotFrom >= $appointmentTo) && $currentDateString == $appointmentDate) {
-                // If there is a conflict, the time slot is not available
-                return false;
+            // Get appointment time range
+            $appointmentStart = new DateTime($appointment['time_slot_from']);
+            $appointmentEnd = new DateTime($appointment['time_slot_to']);
+
+            // Check for overlap using interval logic
+            $hasOverlap = !($slotEnd <= $appointmentStart || $slotStart >= $appointmentEnd);
+
+            if ($hasOverlap) {
+                return false; // Slot conflicts with existing appointment
             }
         }
 
-        // If no conflicts were found, the time slot is available
-        return true;
+        return true; // No conflicts found, slot is available
+    }
+
+    /**
+     * Get array of weekdays
+     * 
+     * @return array Days of the week in lowercase
+     */
+    private function getDays()
+    {
+        return [
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday',
+            'friday',
+            'saturday',
+            'sunday'
+        ];
     }
 }

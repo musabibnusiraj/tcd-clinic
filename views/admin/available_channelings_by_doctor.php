@@ -1,36 +1,28 @@
 <?php
-require_once('layouts/header.php');
-require_once __DIR__ . '/../../models/DoctorAvailability.php';
-require_once __DIR__ . '/../../models/Appointment.php';
-require_once __DIR__ . '/../../helpers/AppointmentScheduler.php';
-
+// Get and validate input parameters BEFORE any output
 $weekInputValue = isset($_GET['week']) ? htmlspecialchars($_GET['week']) : '';
 $doctorId = isset($_GET['doctor_id']) ? (int)$_GET['doctor_id'] : 0;
 
+// Redirect if required parameters are missing (must be before header.php)
 if (empty($doctorId) || empty($weekInputValue)) {
-    // header("Location: available_channelings.php");
-    dd('Access Denied...!');
+    header("Location: available_channelings.php");
     exit;
 }
 
-$days = getDays();
-$today = new DateTime();
+// Now safe to include header and load dependencies
+require_once('layouts/header.php');
+require_once __DIR__ . '/../../helpers/AppointmentScheduler.php';
 
-$appointmentModel = new Appointment();
-$existingAppointments = $appointmentModel->getAllByColumnValue('doctor_id', $doctorId);
+// Initialize the scheduler with minimal dependencies
+// All data fetching is now handled inside the AppointmentScheduler class
+$scheduler = new AppointmentScheduler($doctorId, $weekInputValue);
 
-$doctorAvailabilityModel = new DoctorAvailability();
-$availableSlots = $doctorAvailabilityModel->getAllActiveByDoctorId($doctorId);
-
-$doctorModel = new Doctor();
-$doctor = $doctorModel->getById($doctorId);
-
-$treatmentModel = new Treatment();
-$treatments = $treatmentModel->getAllActive();
-
-$scheduler = new AppointmentScheduler($doctorId, $weekInputValue, $days, $availableSlots, $today, $existingAppointments, SLOT_DURATION);
+// Display the schedule
 $scheduler->displaySchedule();
-//
+
+// Get doctor and treatment data for the modal
+$doctor = $scheduler->getDoctor();
+$treatments = $scheduler->getTreatments();
 ?>
 
 <!-- Modal -->
@@ -125,10 +117,11 @@ $scheduler->displaySchedule();
         </div>
     </div>
 </div>
-<?php require_once('layouts/footer.php'); ?>
+<?php require_once('../layouts/footer.php'); ?>
 
 <script>
     $(document).ready(function() {
+
         $('#treatment_id').change(function() {
             $('#fees').hide();
 
