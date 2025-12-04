@@ -100,6 +100,14 @@ $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
                         </a>
                     </li>
 
+                    <!-- Available Channelings-->
+                    <li class="menu-item  <?= $currentFilename === "available_channelings.php" ? 'active' : '' ?> ">
+                        <a href="<?= url('views/admin/available_channelings.php') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-run"></i>
+                            <div data-i18n="Analytics">Appointment Booking</div>
+                        </a>
+                    </li>
+
                     <!-- Doctors -->
                     <li class="menu-item  <?= $currentFilename === "doctors.php" ? 'active' : '' ?> ">
                         <a href="<?= url('views/admin/doctors.php') ?>" class="menu-link">
@@ -113,6 +121,14 @@ $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
                         <a href="<?= url('views/admin/treatments.php') ?>" class="menu-link">
                             <i class="menu-icon tf-icons bx bx-dna"></i>
                             <div data-i18n="Analytics">Treatments</div>
+                        </a>
+                    </li>
+
+                    <!-- Doctor Availabilities.php-->
+                    <li class="menu-item  <?= $currentFilename === "doctor_availabilities.php" ? 'active' : '' ?> ">
+                        <a href="<?= url('views/admin/doctor_availabilities.php') ?>" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-dna"></i>
+                            <div data-i18n="Analytics">Doctor Availabilities</div>
                         </a>
                     </li>
 

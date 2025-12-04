@@ -4,7 +4,6 @@ require_once '../helpers/AppManager.php';
 // require_once '../models/Doctor.php';
 // require_once '../models/Appointment.php';
 // require_once '../models/Payment.php';
-// require_once '../models/Treatment.php';
 
 
 
