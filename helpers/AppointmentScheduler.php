@@ -88,7 +88,6 @@ class AppointmentScheduler
                 $currentDateFullString = $currentDate->format("l, F j, Y");
                 $currentDateString = $currentDate->format("Y-m-d");
 
-
                 foreach ($this->availableSlots as $slot) {
                     $slotDay = $slot['day'] ?? "";
 
