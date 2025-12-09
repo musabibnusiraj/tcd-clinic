@@ -107,6 +107,13 @@ $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
                             <div data-i18n="Analytics">Appointment Booking</div>
                         </a>
                     </li>
+                    
+                        <li class="menu-item <?= $currentFilename === "payments.php" ? 'active' : '' ?> ">
+                            <a href="<?= url('views/admin/payments.php') ?>" class="menu-link">
+                                <i class="menu-icon tf-icons  bx bx-wallet"></i>
+                                <div data-i18n="Analytics">Payments</div>
+                            </a>
+                        </li>
                     <!-- Doctor Availabilities.php-->
                     <li class="menu-item  <?= $currentFilename === "doctor_availabilities.php" ? 'active' : '' ?> ">
                         <a href="<?= url('views/admin/doctor_availabilities.php') ?>" class="menu-link">
@@ -130,6 +137,7 @@ $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
                             <div data-i18n="Analytics">Treatments</div>
                         </a>
                     </li>
+
 
 
                     <!-- Doctors -->

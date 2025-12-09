@@ -34,7 +34,7 @@ $treatments = $scheduler->getTreatments();
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="appointment-book" action="<?= url('services/ajax_functions.php') ?>">
+                <form id="appointment-book" action="<?= url('services/appointment/ajax_fn.php') ?>">
                     <div class="row g-2">
                         <div class="col mb-4 form-group">
                             <label for="doctorId">Doctor</label>
@@ -93,16 +93,18 @@ $treatments = $scheduler->getTreatments();
                         </div>
                     </div>
 
+                    <input type="hidden" name="action" value="book_appointment">
+                    <input type="hidden" id="doctor_id" name="doctor_id" value="<?= $doctorId ?>">
+
                     <input type="hidden" id="timeSlotFrom" name="time_slot_from">
                     <input type="hidden" id="timeSlotTo" name="time_slot_to">
                     <input type="hidden" id="appointmentDate" name="appointment_date">
-                    <!-- <input type="hidden" id="appointmentNo" name="appointment_no"> -->
-                    <input type="hidden" name="action" value="book_appointment">
+          
                     <input type="hidden" id="treatment_fee" name="treatment_fee">
                     <input type="hidden" id="registration_fee" name="registration_fee">
                     <input type="hidden" id="registration_fee_paid" name="registration_fee_paid" value="1">
-                    <input type="hidden" id="doctor_id" name="doctor_id" value="<?= $doctorId ?>">
-
+                    
+      
                     <div class="mb-3 mt-3">
                         <div id="alert-container"></div>
                     </div>
@@ -117,7 +119,7 @@ $treatments = $scheduler->getTreatments();
         </div>
     </div>
 </div>
-<?php require_once('../layouts/footer.php'); ?>
+<?php require_once('layouts/footer.php'); ?>
 
 <script>
     $(document).ready(function() {
@@ -157,18 +159,14 @@ $treatments = $scheduler->getTreatments();
         // Handle modal button click
         $('.book-modal').on('click', function(e) {
             e.preventDefault();
-
-            var dataId = $(this).data('id');
             var appointmentId = generateAppointmentId();
 
             // Get data attributes
-            var dataId = $(this).data('id');
             var appointmentDate = $(this).data('appointment-date');
             var timeSlotFrom = $(this).data('time-slot-from');
             var timeSlotTo = $(this).data('time-slot-to');
 
             // Set values to hidden input fields in the modal form
-            $('#dataId').val(dataId);
             $('#appointmentDate').val(appointmentDate);
             $('#timeSlotFrom').val(timeSlotFrom);
             $('#timeSlotTo').val(timeSlotTo);
