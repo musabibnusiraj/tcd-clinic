@@ -1,3 +1,12 @@
+<?php 
+include __DIR__ . '/config.php';
+include BASE_PATH . '/helpers/AppManager.php';
+include BASE_PATH . '/models/Treatment.php';
+
+$treatmentObj = new Treatment();
+$treatments = $treatmentObj->getAll();
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -347,8 +356,29 @@
                     </p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <!-- Service Card: Cleanings -->
+                   
+                    <?php
+                    foreach ($treatments as $key => $treatment) {
+                    ?>
                     <div class="bg-gray-50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-2">
+                              <?= $treatment['name'] ?? '' ?>
+                            </h3>
+                            <p class="text-gray-600 mb-4">
+                                <?= $treatment['description'] ?? '' ?>
+                            </p>
+                            <!-- <div class="bg-blue-50 py-2 px-4 rounded-md inline-block">
+                                <span class="font-medium text-blue-800">
+                                    LKR 3,500
+                                </span>
+                            </div> -->
+                        </div>
+                    </div>
+                     <?php } ?>
+                    <!--
+
+                      <div class="bg-gray-50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
                         <div class="p-6">
                             <h3 class="text-xl font-bold text-gray-800 mb-2">
                                 Cleanings
@@ -363,7 +393,6 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Service Card: Whitening -->
                     <div class="bg-gray-50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
                         <div class="p-6">
                             <h3 class="text-xl font-bold text-gray-800 mb-2">
@@ -379,7 +408,7 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Service Card: Filling -->
+                
                     <div class="bg-gray-50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
                         <div class="p-6">
                             <h3 class="text-xl font-bold text-gray-800 mb-2">
@@ -395,7 +424,8 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Service Card: Nerve Filling -->
+                    
+              
                     <div class="bg-gray-50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
                         <div class="p-6">
                             <h3 class="text-xl font-bold text-gray-800 mb-2">
@@ -411,7 +441,7 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Service Card: Root Canal Therapy -->
+                  
                     <div class="bg-gray-50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
                         <div class="p-6">
                             <h3 class="text-xl font-bold text-gray-800 mb-2">
@@ -426,7 +456,8 @@
                                 </span>
                             </div>
                         </div>
-                    </div>
+                    </div>  
+                    -->
                 </div>
                 <div class="mt-12 bg-blue-50 p-6 rounded-lg">
                     <p class="text-gray-700 text-center">

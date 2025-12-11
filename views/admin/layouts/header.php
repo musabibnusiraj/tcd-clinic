@@ -37,7 +37,7 @@ $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
     <meta name="description" content="" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="../../assets/img/favicon/favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="<?= asset('assets/img/favicon/favicon.ico') ?>s" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -47,26 +47,26 @@ $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
         rel="stylesheet" />
 
     <!-- Icons. Uncomment required icon fonts -->
-    <link rel="stylesheet" href="../../assets/vendor/fonts/boxicons.css" />
+    <link rel="stylesheet" href="<?= asset('assets/vendor/fonts/boxicons.css') ?>" />
 
     <!-- Core CSS -->
-    <link rel="stylesheet" href="../../assets/vendor/css/core.css" class="template-customizer-core-css" />
-    <link rel="stylesheet" href="../../assets/vendor/css/theme-default.css" class="template-customizer-theme-css" />
-    <link rel="stylesheet" href="../../assets/css/demo.css" />
+    <link rel="stylesheet" href="<?= asset('assets/vendor/css/core.css') ?>" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="<?= asset('assets/vendor/css/theme-default.css') ?>" class="template-customizer-theme-css" />
+    <link rel="stylesheet" href="<?= asset('assets/css/demo.css') ?>" />
 
     <!-- Vendors CSS -->
-    <link rel="stylesheet" href="../../assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="<?= asset('assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css') ?>" />
 
-    <link rel="stylesheet" href="../../assets/vendor/libs/apex-charts/apex-charts.css" />
+    <link rel="stylesheet" href="<?= asset('assets/vendor/libs/apex-charts/apex-charts.css') ?>" />
 
     <!-- Page CSS -->
 
     <!-- Helpers -->
-    <script src="../../assets/vendor/js/helpers.js"></script>
+    <script src="<?= asset('assets/vendor/js/helpers.js') ?>"></script>
 
     <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
     <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
-    <script src="../../assets/js/config.js"></script>
+    <script src=".<?= asset('assets/js/config.js') ?>"></script>
 </head>
 
 <body>
@@ -81,7 +81,7 @@ $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
                         <span class="app-brand-logo demo">
 
                         </span>
-                        <span class="app-brand-text demo menu-text fw-bolder ms-2">TCD Clinic</span>
+                        <span class="app-brand-text demo menu-text fw-bolder ms-2"><i class='bx bx-plus-medical bx-md bx-tada'></i> TCD Clinic</span>
                     </a>
 
                     <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
@@ -100,59 +100,63 @@ $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
                         </a>
                     </li>
 
-                    <!-- Available Channelings-->
-                    <li class="menu-item  <?= $currentFilename === "available_channelings.php" ? 'active' : '' ?> ">
-                        <a href="<?= url('views/admin/available_channelings.php') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-run"></i>
-                            <div data-i18n="Analytics">Appointment Booking</div>
-                        </a>
-                    </li>
-                    
+                    <?php if ($permission == 'operator') : ?>
+                        <!-- Available Channelings-->
+                        <li class="menu-item  <?= $currentFilename === "available_channelings.php" ? 'active' : '' ?> ">
+                            <a href="<?= url('views/admin/available_channelings.php') ?>" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-run"></i>
+                                <div data-i18n="Analytics">Appointment Booking</div>
+                            </a>
+                        </li>
+                    <?php endif; ?>
+
                     <li class="menu-item <?= $currentFilename === "appointments.php" ? 'active' : '' ?> ">
                         <a href="<?= url('views/admin/appointments.php') ?>" class="menu-link">
                             <i class="menu-icon tf-icons  bx bx-collection"></i>
                             <div data-i18n="Analytics">Appointments</div>
                         </a>
                     </li>
+                    <?php if ($permission == 'operator') : ?>
                         <li class="menu-item <?= $currentFilename === "payments.php" ? 'active' : '' ?> ">
                             <a href="<?= url('views/admin/payments.php') ?>" class="menu-link">
                                 <i class="menu-icon tf-icons  bx bx-wallet"></i>
                                 <div data-i18n="Analytics">Payments</div>
                             </a>
                         </li>
-                    <!-- Doctor Availabilities.php-->
-                    <li class="menu-item  <?= $currentFilename === "doctor_availabilities.php" ? 'active' : '' ?> ">
-                        <a href="<?= url('views/admin/doctor_availabilities.php') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-time-five"></i>
-                            <div data-i18n="Analytics">Doctor Availabilities</div>
-                        </a>
-                    </li>
+                        <!-- Doctor Availabilities.php-->
+                        <li class="menu-item  <?= $currentFilename === "doctor_availabilities.php" ? 'active' : '' ?> ">
+                            <a href="<?= url('views/admin/doctor_availabilities.php') ?>" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-time-five"></i>
+                                <div data-i18n="Analytics">Doctor Availabilities</div>
+                            </a>
+                        </li>
 
-                    <!-- Doctors -->
-                    <li class="menu-item  <?= $currentFilename === "doctors.php" ? 'active' : '' ?> ">
-                        <a href="<?= url('views/admin/doctors.php') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-plus-medical"></i>
-                            <div data-i18n="Analytics">Doctors</div>
-                        </a>
-                    </li>
+                        <!-- Doctors -->
+                        <li class="menu-item  <?= $currentFilename === "doctors.php" ? 'active' : '' ?> ">
+                            <a href="<?= url('views/admin/doctors.php') ?>" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-plus-medical"></i>
+                                <div data-i18n="Analytics">Doctors</div>
+                            </a>
+                        </li>
 
-                    <!-- treatments -->
-                    <li class="menu-item  <?= $currentFilename === "treatments.php" ? 'active' : '' ?> ">
-                        <a href="<?= url('views/admin/treatments.php') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-dna"></i>
-                            <div data-i18n="Analytics">Treatments</div>
-                        </a>
-                    </li>
+                        <!-- treatments -->
+                        <li class="menu-item  <?= $currentFilename === "treatments.php" ? 'active' : '' ?> ">
+                            <a href="<?= url('views/admin/treatments.php') ?>" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-dna"></i>
+                                <div data-i18n="Analytics">Treatments</div>
+                            </a>
+                        </li>
 
 
 
-                    <!-- Doctors -->
-                    <li class="menu-item  <?= $currentFilename === "users.php" ? 'active' : '' ?> ">
-                        <a href="<?= url('views/admin/users.php') ?>" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-user"></i>
-                            <div data-i18n="Analytics">Users</div>
-                        </a>
-                    </li>
+                        <!-- Doctors -->
+                        <li class="menu-item  <?= $currentFilename === "users.php" ? 'active' : '' ?> ">
+                            <a href="<?= url('views/admin/users.php') ?>" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-user"></i>
+                                <div data-i18n="Analytics">Users</div>
+                            </a>
+                        </li>
+                    <?php endif; ?>
                 </ul>
             </aside>
             <!-- / Menu -->

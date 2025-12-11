@@ -41,7 +41,7 @@ if ($permission == 'operator') {
             <table class="table table-striped mb-4">
                 <thead>
                     <tr>
-                        <th></th>
+                        <?php if ($permission == 'operator') : ?> <th></th> <?php endif; ?>
                         <th class="text-nowrap">Date</th>
                         <th class="text-nowrap">Appointment No</th>
                         <th class="text-nowrap">Treatment</th>
@@ -68,12 +68,13 @@ if ($permission == 'operator') {
                             $timeSlotTo = $time_slot_to->format('h:i A');
                     ?>
                             <tr>
-                                <td>
-                                    <div>
-                                        <a class="btn btn-sm btn-info m-2" href="<?= url('views/admin/appointment_edit.php?id=' . $c['id'] ?? '') ?>"><i class="bx bx-edit-alt"></i></a>
-                                        <!-- <a class="btn btn-sm btn-danger m-2" href="#" onclick="confirmDelete(<?= $c['id']; ?>)"><i class="bx bx-trash"></i></a> -->
-                                    </div>
-                                </td>
+                                <?php if ($permission == 'operator') : ?> <td>
+                                        <div>
+                                            <a class="btn btn-sm btn-info m-2" href="<?= url('views/admin/appointment_edit.php?id=' . $c['id'] ?? '') ?>"><i class="bx bx-edit-alt"></i></a>
+                                            <!-- <a class="btn btn-sm btn-danger m-2" href="#" onclick="confirmDelete(<?= $c['id']; ?>)"><i class="bx bx-trash"></i></a> -->
+                                        </div>
+                                    </td>
+                                <?php endif; ?>
                                 <td class="text-nowrap appointment_date"><?= $c['appointment_date'] ?? ""; ?></td>
                                 <td class="text-nowrap">#<?= $c['id'] ?? ""; ?> - <?= $c['appointment_no'] ?? ""; ?> </td>
                                 <td class="text-nowrap"> <?= $c['treatment_name'] ?? ""; ?> </td>
@@ -105,7 +106,7 @@ if ($permission == 'operator') {
     $(document).ready(function() {
         $("#searchInput").on("input", function() {
             var searchTerm = $(this).val().toLowerCase();
-           
+
             // Loop through each row in the table body
             $("tbody tr").filter(function() {
                 // Toggle the visibility based on the search term
