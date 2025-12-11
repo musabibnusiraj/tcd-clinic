@@ -1,10 +1,18 @@
-<?php 
+<?php
 include __DIR__ . '/config.php';
 include BASE_PATH . '/helpers/AppManager.php';
 include BASE_PATH . '/models/Treatment.php';
+include BASE_PATH . '/models/Doctor.php';
+include BASE_PATH . '/models/DoctorAvailability.php';
 
 $treatmentObj = new Treatment();
 $treatments = $treatmentObj->getAll();
+
+$doctorObj = new Doctor();
+$doctor = $doctorObj->getFirstActiveDoctor();
+
+$dravaObj = new DoctorAvailability();
+$availabilities = $dravaObj->getAllActiveByDoctorId($doctor['id'] ?? 0);
 
 ?>
 <!DOCTYPE html>
@@ -161,25 +169,21 @@ $treatments = $treatmentObj->getAll();
                 <div class="flex flex-col md:flex-row items-center gap-8">
                     <div class="md:w-1/3 mb-6 md:mb-0">
                         <div class="bg-gray-100 p-1 rounded-lg">
-                            <img
-                                src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80"
-                                alt="Dr. M. Mishary"
-                                class="rounded-lg w-full h-auto object-cover" />
+
+                            <?php if (isset($doctor['photo']) || !empty($doctor['photo'])) : ?>
+                                <img src="<?= asset('assets/uploads/' . $doctor['photo']) ?>" alt="user-avatar" class="rounded-lg w-full h-auto object-cover">
+                            <?php else : ?>
+                                <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="user-avatar" class="rounded-lg w-full h-auto object-cover">
+                            <?php endif; ?>
                         </div>
                     </div>
                     <div class="md:w-2/3">
                         <h3 class="text-2xl font-bold text-gray-800 mb-2">
-                            Dr. M. Mishary
+                            Dr. <?= $doctor['name'] ?? '' ?>
                         </h3>
-                        <p class="text-blue-600 font-medium mb-4">Dental Surgeon</p>
+                        <!-- <p class="text-blue-600 font-medium mb-4">Dental Surgeon</p> -->
                         <p class="text-gray-600 mb-6">
-                            Dr. M. Mishary is a highly skilled dental surgeon with extensive
-                            experience in various dental procedures. He specializes in
-                            providing comprehensive dental care with a gentle touch, ensuring
-                            patients feel comfortable throughout their treatment. Dr. Ahmed is
-                            committed to staying updated with the latest advancements in
-                            dental technology and techniques to provide the best possible care
-                            for his patients.
+                            <?= $doctor['about'] ?? '' ?>
                         </p>
                         <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-600">
                             <p class="text-gray-700 italic">
@@ -217,89 +221,42 @@ $treatments = $treatmentObj->getAll();
                     </h2>
                     <div class="hr-blue mb-6"></div>
                     <p class="text-gray-600 max-w-3xl mx-auto">
-                        Dr. M. Mishary is available for consultations on the following days.
+                        Dr. <?= $doctor['name'] ?? '' ?> is available for consultations on the following days.
                         Contact us to book your appointment during these hours.
                     </p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <!-- Appointment Time Card: Monday -->
-                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
-                        <div class="flex items-center mb-4">
-                            <!-- Calendar icon (Lucide-react replaced by simple SVG) -->
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar text-blue-600 mr-2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                <line x1="16" x2="16" y1="2" y2="6" />
-                                <line x1="8" x2="8" y1="2" y2="6" />
-                                <line x1="3" x2="21" y1="10" y2="10" />
-                            </svg>
-                            <h3 class="text-xl font-bold text-gray-800">Monday</h3>
+
+                    <?php
+                    foreach ($availabilities as $key => $availability) {
+                        $time_slot_from = new DateTime($availability['session_from']);
+                        $timeSlotFrom = $time_slot_from->format('h:i A');
+
+                        $time_slot_to = new DateTime($availability['session_to']);
+                        $timeSlotTo = $time_slot_to->format('h:i A');
+                    ?>
+                        <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
+                            <div class="flex items-center mb-4">
+                                <!-- Calendar icon (Lucide-react replaced by simple SVG) -->
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar text-blue-600 mr-2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                    <line x1="16" x2="16" y1="2" y2="6" />
+                                    <line x1="8" x2="8" y1="2" y2="6" />
+                                    <line x1="3" x2="21" y1="10" y2="10" />
+                                </svg>
+                                <h3 class="text-xl font-bold text-gray-800 text-capitalize"><?= $availability['day'] ?? '' ?></h3>
+                            </div>
+                            <div class="flex items-center">
+                                <!-- Clock icon (Lucide-react replaced by simple SVG) -->
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock text-blue-600 mr-2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <polyline points="12 6 12 12 16 14" />
+                                </svg>
+                                <p class="text-gray-600"><?= $timeSlotFrom ?? '' ?> - <?= $timeSlotTo ?? '' ?></p>
+                            </div>
                         </div>
-                        <div class="flex items-center">
-                            <!-- Clock icon (Lucide-react replaced by simple SVG) -->
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock text-blue-600 mr-2">
-                                <circle cx="12" cy="12" r="10" />
-                                <polyline points="12 6 12 12 16 14" />
-                            </svg>
-                            <p class="text-gray-600">06:00 PM - 09:00 PM</p>
-                        </div>
-                    </div>
-                    <!-- Appointment Time Card: Wednesday -->
-                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
-                        <div class="flex items-center mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar text-blue-600 mr-2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                <line x1="16" x2="16" y1="2" y2="6" />
-                                <line x1="8" x2="8" y1="2" y2="6" />
-                                <line x1="3" x2="21" y1="10" y2="10" />
-                            </svg>
-                            <h3 class="text-xl font-bold text-gray-800">Wednesday</h3>
-                        </div>
-                        <div class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock text-blue-600 mr-2">
-                                <circle cx="12" cy="12" r="10" />
-                                <polyline points="12 6 12 12 16 14" />
-                            </svg>
-                            <p class="text-gray-600">06:00 PM - 09:00 PM</p>
-                        </div>
-                    </div>
-                    <!-- Appointment Time Card: Saturday -->
-                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
-                        <div class="flex items-center mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar text-blue-600 mr-2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                <line x1="16" x2="16" y1="2" y2="6" />
-                                <line x1="8" x2="8" y1="2" y2="6" />
-                                <line x1="3" x2="21" y1="10" y2="10" />
-                            </svg>
-                            <h3 class="text-xl font-bold text-gray-800">Saturday</h3>
-                        </div>
-                        <div class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock text-blue-600 mr-2">
-                                <circle cx="12" cy="12" r="10" />
-                                <polyline points="12 6 12 12 16 14" />
-                            </svg>
-                            <p class="text-gray-600">03:00 PM - 10:00 PM</p>
-                        </div>
-                    </div>
-                    <!-- Appointment Time Card: Sunday -->
-                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300">
-                        <div class="flex items-center mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar text-blue-600 mr-2">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                <line x1="16" x2="16" y1="2" y2="6" />
-                                <line x1="8" x2="8" y1="2" y2="6" />
-                                <line x1="3" x2="21" y1="10" y2="10" />
-                            </svg>
-                            <h3 class="text-xl font-bold text-gray-800">Sunday</h3>
-                        </div>
-                        <div class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock text-blue-600 mr-2">
-                                <circle cx="12" cy="12" r="10" />
-                                <polyline points="12 6 12 12 16 14" />
-                            </svg>
-                            <p class="text-gray-600">03:00 PM - 10:00 PM</p>
-                        </div>
-                    </div>
+                    <?php } ?>
+
                 </div>
                 <div class="mt-12 bg-white p-6 rounded-lg shadow-md">
                     <h3 class="text-xl font-bold text-gray-800 mb-4">
@@ -356,26 +313,26 @@ $treatments = $treatmentObj->getAll();
                     </p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                   
+
                     <?php
                     foreach ($treatments as $key => $treatment) {
                     ?>
-                    <div class="bg-gray-50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">
-                              <?= $treatment['name'] ?? '' ?>
-                            </h3>
-                            <p class="text-gray-600 mb-4">
-                                <?= $treatment['description'] ?? '' ?>
-                            </p>
-                            <!-- <div class="bg-blue-50 py-2 px-4 rounded-md inline-block">
+                        <div class="bg-gray-50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
+                            <div class="p-6">
+                                <h3 class="text-xl font-bold text-gray-800 mb-2">
+                                    <?= $treatment['name'] ?? '' ?>
+                                </h3>
+                                <p class="text-gray-600 mb-4">
+                                    <?= $treatment['description'] ?? '' ?>
+                                </p>
+                                <!-- <div class="bg-blue-50 py-2 px-4 rounded-md inline-block">
                                 <span class="font-medium text-blue-800">
                                     LKR 3,500
                                 </span>
                             </div> -->
+                            </div>
                         </div>
-                    </div>
-                     <?php } ?>
+                    <?php } ?>
                     <!--
 
                       <div class="bg-gray-50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">

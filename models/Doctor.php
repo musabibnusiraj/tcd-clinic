@@ -137,4 +137,14 @@ class Doctor extends BaseModel
         $param = array(':id' => $id);
         return $this->pm->run("SELECT * FROM " . $this->getTableName() . " WHERE user_id = :id", $param, true);
     }
+
+    public function getFirstActiveDoctor()
+    {
+        $param = array(':is_active' => 1);
+        return $this->pm->run(
+            "SELECT * FROM " . $this->getTableName() . " WHERE is_active = :is_active ORDER BY id ASC LIMIT 1",
+            $param,
+            true
+        );
+    }
 }
