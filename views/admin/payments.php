@@ -118,7 +118,7 @@ $payments = $paymentModel->getAllWithTreatmentAndAppointment();
                     </div>
                     <div class="form-check ml-3 mb-3">
                         <input class="form-check-input" type="checkbox" value="" id="treatment_fee_paid_check">
-                        <label class="form-check-label" for="treatment_fee_paid_check"> Pay Treatment Fee </label>
+                        <label class="form-check-label" for="treatment_fee_paid_check"> Paid Treatment Fee </label>
                     </div>
                     <div class="row g-1">
                         <div class="col mb-4 form-group text-right">
@@ -257,6 +257,8 @@ $payments = $paymentModel->getAllWithTreatmentAndAppointment();
 
             if (treatmentFeePaid) {
                 $('#treatment_fee_paid_check').prop('checked', true);
+            }else{
+                 $('#treatment_fee_paid_check').prop('checked', false);
             }
 
             // Set values to modal body elements

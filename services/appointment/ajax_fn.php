@@ -86,44 +86,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
-// //update appointment
-// if (
-//     $_SERVER['REQUEST_METHOD'] === 'POST'
-//     && isset($_POST['action'])
-//     && $_POST['action'] === 'appointment-update'
-// ) {
-//     try {
-//         $appointment_id = $_POST['appointment_id'] ?? null;
-//         $patient_name = $_POST['patient_name'] ?? "";
-//         $address = $_POST['address'] ?? "";
-//         $telephone = $_POST['telephone'] ?? "";
-//         $email = $_POST['email'] ?? "";
-//         $nic = $_POST['nic'] ?? "";
+//update appointment
+if (
+    $_SERVER['REQUEST_METHOD'] === 'POST'
+    && isset($_POST['action'])
+    && $_POST['action'] === 'appointment-update'
+) {
+    try {
+        $appointment_id = $_POST['appointment_id'] ?? null;
+        $patient_name = $_POST['patient_name'] ?? "";
+        $address = $_POST['address'] ?? "";
+        $telephone = $_POST['telephone'] ?? "";
+        $email = $_POST['email'] ?? "";
+        $nic = $_POST['nic'] ?? "";
 
-//         $appointment = new Appointment();
-//         $appointmentData = $appointment->getById($appointment_id);
+        $appointment = new Appointment();
+        $appointmentData = $appointment->getById($appointment_id);
 
-//         if (!empty($appointmentData)) {
-//             $appointment->id = $appointment_id;
-//             $appointment->patient_name = $patient_name;
-//             $appointment->address = $address;
-//             $appointment->telephone = $telephone;
-//             $appointment->address = $address;
-//             $appointment->email = $email;
-//             $appointment->nic = $nic;
-//             $appointment->save();
+        if (!empty($appointmentData)) {
+            $appointment->id = $appointment_id;
+            $appointment->patient_name = $patient_name;
+            $appointment->address = $address;
+            $appointment->telephone = $telephone;
+            $appointment->address = $address;
+            $appointment->email = $email;
+            $appointment->nic = $nic;
+            $appointment->save();
 
 
-//             // Response to send back
-//             echo json_encode(['success' => true, 'message' => 'Appointment udpated successfully']);
-//         } else {
-//             echo json_encode(['success' => false, 'message' => 'Appointment have an error!']);
-//         }
-//     } catch (PDOException $e) {
-//         // Handle database connection errors
-//         echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
-//     }
-//     exit;
-// }
+            // Response to send back
+            echo json_encode(['success' => true, 'message' => 'Appointment updated successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Appointment have an error!']);
+        }
+    } catch (PDOException $e) {
+        // Handle database connection errors
+        echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+    exit;
+}
 
 dd('Access denied..!');

@@ -105,7 +105,7 @@ if ($permission == 'operator') {
     $(document).ready(function() {
         $("#searchInput").on("input", function() {
             var searchTerm = $(this).val().toLowerCase();
-
+           
             // Loop through each row in the table body
             $("tbody tr").filter(function() {
                 // Toggle the visibility based on the search term
@@ -143,9 +143,7 @@ if ($permission == 'operator') {
 
         // Event handler for date picker change
         $('#datePicker').on('change', function() {
-
             var selectedDate = $(this).val();
-            alert(selectedDate);
             filterAppointmentsByDate(selectedDate);
         });
 
