@@ -1,11 +1,18 @@
 <?php
+$requireOperator = true; // Only operators can open this page
 require_once('layouts/header.php');
-include BASE_PATH . '/models/Appointment.php';
+require_once BASE_PATH . '/models/Appointment.php';
 
 $id = $_GET['id'] ?? null;
 
 $appointmentModel = new Appointment();
-$appointment = $appointmentModel->getById($id);
+$appointment = $appointmentModel->getByIdWithDetails($id);
+
+// Unknown appointment id: go back to the list
+if (!$appointment) {
+    header('Location: ' . url('views/admin/appointments.php'));
+    exit;
+}
 
 $time_slot_from = new DateTime($appointment['time_slot_from']);
 $timeSlotFrom = $time_slot_from->format('h:i A');
@@ -40,63 +47,63 @@ $timeSlotTo = $time_slot_to->format('h:i A');
                         <div id="alert-container"></div>
                     </div>
                     <!-- Include hidden field for appointment ID -->
-                    <input type="hidden" name="appointment_id" value="<?= $appointment['id']; ?>">
+                    <input type="hidden" name="appointment_id" value="<?= e($appointment['id']) ?>">
                     <input type="hidden" name="action" value="appointment-update">
 
                     <div class="mb-3 col-6">
                         <label for="appointment_date" class="form-label">Appointment Date:</label>
-                        <input type="text" class="form-control" value="<?= $appointment['appointment_date']; ?>" readonly>
+                        <input type="text" class="form-control" value="<?= e($appointment['appointment_date']) ?>" readonly>
                     </div>
 
                     <div class="mb-3 col-6">
                         <label for="appointment_no" class="form-label">Appointment No:</label>
-                        <input type="text" class="form-control" value="<?= $appointment['appointment_no']; ?>" readonly>
+                        <input type="text" class="form-control" value="<?= e($appointment['appointment_no']) ?>" readonly>
                     </div>
 
                     <div class="mb-3 col-6">
                         <label for="time_slot_from" class="form-label">Time Slot From:</label>
-                        <input type="text" class="form-control" value="<?= $timeSlotFrom ?? ""; ?>" readonly>
+                        <input type="text" class="form-control" value="<?= e($timeSlotFrom ?? "") ?>" readonly>
                     </div>
 
                     <div class="mb-3 col-6">
                         <label for="time_slot_to" class="form-label">Time Slot To:</label>
-                        <input type="text" class="form-control" value="<?= $timeSlotTo ?? ""; ?>" readonly>
+                        <input type="text" class="form-control" value="<?= e($timeSlotTo ?? "") ?>" readonly>
                     </div>
 
                     <div class="mb-3 col-6">
                         <label for="doctor_name" class="form-label">Doctor:</label>
-                        <input type="text" class="form-control" value="<?= $appointment['doctor_name'] ?? ""; ?>" readonly>
+                        <input type="text" class="form-control" value="<?= e($appointment['doctor_name'] ?? "") ?>" readonly>
                     </div>
 
                     <div class="mb-3 col-6">
                         <label for="treatment_name" class="form-label">Treatment:</label>
-                        <input type="text" class="form-control" value="<?= $appointment['treatment_name'] ?? ""; ?>" readonly>
+                        <input type="text" class="form-control" value="<?= e($appointment['treatment_name'] ?? "") ?>" readonly>
                     </div>
 
                     <div class="mb-3 col-6">
                         <label for="patient_name" class="form-label">Patient Name:</label>
-                        <input type="text" class="form-control" id="patient_name" name="patient_name" value="<?= $appointment['patient_name']; ?>">
+                        <input type="text" class="form-control" id="patient_name" name="patient_name" value="<?= e($appointment['patient_name']) ?>">
                     </div>
 
 
                     <div class="mb-3 col-6">
                         <label for="address" class="form-label">Address:</label>
-                        <input type="text" class="form-control" id="address" name="address" value="<?= $appointment['address']; ?>">
+                        <input type="text" class="form-control" id="address" name="address" value="<?= e($appointment['address']) ?>">
                     </div>
 
                     <div class="mb-3 col-6">
                         <label for="telephone" class="form-label">Telephone:</label>
-                        <input type="text" class="form-control" id="telephone" name="telephone" value="<?= $appointment['telephone']; ?>">
+                        <input type="text" class="form-control" id="telephone" name="telephone" value="<?= e($appointment['telephone']) ?>">
                     </div>
 
                     <div class="mb-3 col-6">
                         <label for="email" class="form-label">Email:</label>
-                        <input type="email" class="form-control" id="email" name="email" value="<?= $appointment['email']; ?>">
+                        <input type="email" class="form-control" id="email" name="email" value="<?= e($appointment['email']) ?>">
                     </div>
 
                     <div class="mb-3 col-6">
                         <label for="nic" class="form-label">NIC:</label>
-                        <input type="text" class="form-control" id="nic" name="nic" value="<?= $appointment['nic']; ?>">
+                        <input type="text" class="form-control" id="nic" name="nic" value="<?= e($appointment['nic']) ?>">
                     </div>
 
                     <div class="mt-4 col-6 text-end">

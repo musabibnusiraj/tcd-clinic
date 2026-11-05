@@ -1,70 +1,68 @@
 <?php
-// Include configuration and helper class files
-include __DIR__ . '/../config.php';
-include __DIR__ . '/../helpers/AppManager.php';
+
+/**
+ * Login handler: checks the email and password sent by the login form.
+ *
+ * On success the user is saved in the session and sent to app.php.
+ * On failure an error message is saved in the session and the user is
+ * sent back to the login page.
+ */
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../helpers/AppManager.php';
+require_once __DIR__ . '/../models/User.php';
+
+$sm = AppManager::getSM();
+$loginPage = url('views/auth/login.php');
+
+/**
+ * Saves an error message and returns to the login page.
+ */
+function failLogin(SessionManager $sm, $message, $loginPage)
+{
+    $sm->setAttribute('error', $message);
+    header('Location: ' . $loginPage);
+    exit;
+}
 
 try {
-    // Get instances of the persistence manager (PM) and session manager (SM)
-    $pm = AppManager::getPM();
-    $sm = AppManager::getSM();
-
-    // Retrieve submitted credentials from the POST request (use null coalescing to avoid notices)
-    $email = $_POST['email'] ?? '';
+    $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
-    $remember = isset($_POST['remember']) ? true : false;
+    $remember = isset($_POST['remember']);
 
-    // Basic validation: ensure both fields are provided
-    if (empty($email) || empty($password)) {
-        // Set an error message in the session manager and redirect back
-        $sm->setAttribute("error", 'Please fill all required fields!');
-        header("Location: " . ($_SERVER['HTTP_REFERER'] ?? '../login.php'));
-        exit;
+    // Both fields are required
+    if ($email === '' || $password === '') {
+        failLogin($sm, 'Please fill all required fields!', $loginPage);
     }
 
-    // Prepare parameter for the query to fetch the user by email
-    $param = array(':email' => $email);
+    $user = (new User())->getByEmail($email);
 
-    // Run a parameterized query to get the user row (true = single row)
-    $user = $pm->run("SELECT * FROM users WHERE email = :email", $param, true);
-
-    if ($user != null) {
-        // Verify the provided password against the stored hash
-        $correct = password_verify($password, $user['password']);
-        if ($correct) {
-            // On success, store user info in the session manager
-            $sm->setAttribute("userId", $user['id']);
-            $sm->setAttribute("username", $user['username']);
-            $sm->setAttribute("permission", $user['permission']);
-
-            if ($remember) {
-                $cookie_time = time() + (30 * 24 * 60 * 60); // 30 days
-                setcookie('remember_email', $email, $cookie_time, '/', '', false, true);
-            } else {
-                // Clear remember me cookies if unchecked
-                if (isset($_COOKIE['remember_email'])) {
-                    setcookie('remember_email', '', time() - 3600, '/', '', false, true);
-                }
-            }
-
-            // Redirect to the main application page
-            header('Location: ../app.php');
-            exit;
-        } else {
-            // Wrong password: set generic error message
-            $sm->setAttribute("error", 'Invalid email or password!');
-        }
-    } else {
-        // No user found with that email: set generic error message
-        $sm->setAttribute("error", 'Invalid email or password!');
+    // Use the same message for "no such user" and "wrong password"
+    // so attackers cannot find out which emails are registered.
+    if (!$user || !password_verify($password, $user['password'])) {
+        failLogin($sm, 'Invalid email or password!', $loginPage);
     }
 
-    // Redirect back to the referring page (login form)
-    header("Location: " . ($_SERVER['HTTP_REFERER'] ?? '../login.php'));
+    // Inactive users are not allowed to log in
+    if ((int) $user['is_active'] !== 1) {
+        failLogin($sm, 'Your account is inactive. Please contact the administrator.', $loginPage);
+    }
+
+    // Login success: new session id (prevents session fixation) and remember the user
+    $sm->regenerateId();
+    $sm->setAttribute('userId', $user['id']);
+    $sm->setAttribute('username', $user['username']);
+    $sm->setAttribute('permission', $user['permission']);
+
+    // "Remember me" only remembers the email on the login form (30 days)
+    if ($remember) {
+        setcookie('remember_email', $email, time() + 30 * 24 * 60 * 60, '/', '', false, true);
+    } elseif (isset($_COOKIE['remember_email'])) {
+        setcookie('remember_email', '', time() - 3600, '/', '', false, true);
+    }
+
+    header('Location: ' . url('app.php'));
     exit;
 } catch (Exception $e) {
-    $sm->setAttribute("error", 'An internal error occurred. Please try again later.');
-
-    // Redirect back to the referring page or a fallback login page
-    header("Location: " . ($_SERVER['HTTP_REFERER'] ?? '../login.php'));
-    exit;
+    error_log($e->getMessage());
+    failLogin($sm, 'An internal error occurred. Please try again later.', $loginPage);
 }

@@ -1,8 +1,9 @@
 <?php
+$requireOperator = true; // Only operators can open this page
 require_once('layouts/header.php');
-include BASE_PATH . '/models/User.php';
+require_once BASE_PATH . '/models/User.php';
 
-
+$users = (new User())->getAll();
 ?>
 
 
@@ -39,17 +40,14 @@ include BASE_PATH . '/models/User.php';
                 </thead>
                 <tbody class="table-border-bottom-0">
                     <?php
-                    $userObj = new User();
-                    $users = $userObj->getAll();
-                    //
                     foreach ($users as $key => $user) {
                     ?>
                         <tr>
-                            <td><i class="fab fa-angular fa-lg text-danger me-3"></i> <strong><?= $user['username'] ?? 'Unknown' ?></strong></td>
-                            <td><?= $user['email'] ?? 'Unknown' ?></td>
+                            <td><i class="fab fa-angular fa-lg text-danger me-3"></i> <strong><?= e($user['username'] ?? 'Unknown') ?></strong></td>
+                            <td><?= e($user['email'] ?? 'Unknown') ?></td>
                             <td>
                                 <span class="text-capitalize">
-                                    <?= $user['permission'] ?? 'Unknown' ?>
+                                    <?= e($user['permission'] ?? 'Unknown') ?>
                                 </span>
                             </td>
                             <td>
@@ -62,8 +60,8 @@ include BASE_PATH . '/models/User.php';
                                             <i class="bx bx-dots-vertical-rounded"></i>
                                         </button>
                                         <div class="dropdown-menu">
-                                            <a class="dropdown-item edit-user-btn" href="javascript:void(0);" data-id="<?= $user['id']; ?>"><i class="bx bx-edit-alt me-1"></i> Edit</a>
-                                            <a class="dropdown-item delete-user-btn" data-permission="<?= $user['permission']; ?>" data-id="<?= $user['id']; ?>"><i class="bx bx-trash me-1"></i> Delete</a>
+                                            <a class="dropdown-item edit-user-btn" href="javascript:void(0);" data-id="<?= e($user['id']) ?>"><i class="bx bx-edit-alt me-1"></i> Edit</a>
+                                            <a class="dropdown-item delete-user-btn" data-permission="<?= e($user['permission']) ?>" data-id="<?= e($user['id']) ?>"><i class="bx bx-trash me-1"></i> Delete</a>
 
                                         </div>
                                     </div>

@@ -1,7 +1,7 @@
 <?php
+$requireOperator = true; // Only operators can open this page
 require_once('layouts/header.php');
-include BASE_PATH . '/models/Payment.php';
-include BASE_PATH . '/models/Treatment.php';
+require_once BASE_PATH . '/models/Payment.php';
 
 $paymentModel = new Payment();
 $payments = $paymentModel->getAllWithTreatmentAndAppointment();
@@ -37,21 +37,21 @@ $payments = $paymentModel->getAllWithTreatmentAndAppointment();
                         $total = $c['registration_fee'] + (($c['treatment_fee'] ?? 1) * ($c['quantity'] ?? 1));
                     ?>
                         <tr>
-                            <td> <?= $c['id'] ?? ""; ?> </td>
-                            <td> <?= '#' . ($c['appointment_id'] ?? "") . '-' . ($c['appointment_no'] ?? "") ?> </td>
-                            <td> <?= $c['treatment_name'] ?? ""; ?> </td>
-                            <td> <?= $c['registration_fee'] ?? 0.00; ?> </td>
+                            <td> <?= e($c['id'] ?? "") ?> </td>
+                            <td> <?= e('#' . ($c['appointment_id'] ?? "") . '-' . ($c['appointment_no'] ?? "")) ?> </td>
+                            <td> <?= e($c['treatment_name'] ?? "") ?> </td>
+                            <td> <?= e($c['registration_fee'] ?? 0.00) ?> </td>
                             <td> <?= $c['registration_fee_paid'] ? '<span class="badge bg-label-success me-1">Paid</span>' : '<span class="badge bg-label-warning me-1">Pending</span>'; ?> </td>
-                            <td> <?= $c['treatment_fee'] ?? 0.00; ?> </td>
+                            <td> <?= e($c['treatment_fee'] ?? 0.00) ?> </td>
                             <td> <?= $c['treatment_fee_paid'] ? '<span class="badge bg-label-success me-1">Paid</span>' : '<span class="badge bg-label-warning me-1">Pending</span>'; ?> </td>
-                            <td> <?= $c['quantity'] ?? 1; ?> </td>
-                            <td> <?= $total ?? 0.00; ?> </td>
+                            <td> <?= e($c['quantity'] ?? 1) ?> </td>
+                            <td> <?= e($total ?? 0.00) ?> </td>
                             <td>
                                 <div>
-                                    <button type="button" class="btn btn-sm btn-info m-2 active payment-modal" data-treatement-name="<?= $c['treatment_name']; ?>" data-id="<?= $c['id']; ?>" data-treatment-fee-paid="<?= $c['treatment_fee_paid'] == 1 ? 1 : 0; ?>" data-registration-fee-paid="<?= $c['registration_fee_paid'] == 1 ? 1 : 0; ?>" data-treatment-fee="<?= $c['treatment_fee'] ?? 0; ?>" data-registration-fee="<?= $c['registration_fee'] ?? 0; ?>" data-quantity="<?= $c['quantity'] ?? 0; ?>" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                                    <button type="button" class="btn btn-sm btn-info m-2 active payment-modal" data-treatement-name="<?= e($c['treatment_name']) ?>" data-id="<?= e($c['id']) ?>" data-treatment-fee-paid="<?= $c['treatment_fee_paid'] == 1 ? 1 : 0; ?>" data-registration-fee-paid="<?= $c['registration_fee_paid'] == 1 ? 1 : 0; ?>" data-treatment-fee="<?= e($c['treatment_fee'] ?? 0) ?>" data-registration-fee="<?= e($c['registration_fee'] ?? 0) ?>" data-quantity="<?= e($c['quantity'] ?? 0) ?>" data-bs-toggle="modal" data-bs-target="#paymentModal">
                                         Pay
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-primary m-2 active invoice-modal" data-treatement-name="<?= $c['treatment_name']; ?>" data-id="<?= $c['id']; ?>" data-treatment-fee-paid="<?= $c['treatment_fee_paid'] == 1 ? 1 : 0; ?>" data-registration-fee-paid="<?= $c['registration_fee_paid'] == 1 ? 1 : 0; ?>" data-treatment-fee="<?= $c['treatment_fee'] ?? 0; ?>" data-registration-fee="<?= $c['registration_fee'] ?? 0; ?>" data-quantity="<?= $c['quantity'] ?? 0; ?>" data-bs-toggle="modal" data-bs-target="#invoiceModal">
+                                    <button type="button" class="btn btn-sm btn-primary m-2 active invoice-modal" data-treatement-name="<?= e($c['treatment_name']) ?>" data-id="<?= e($c['id']) ?>" data-treatment-fee-paid="<?= $c['treatment_fee_paid'] == 1 ? 1 : 0; ?>" data-registration-fee-paid="<?= $c['registration_fee_paid'] == 1 ? 1 : 0; ?>" data-treatment-fee="<?= e($c['treatment_fee'] ?? 0) ?>" data-registration-fee="<?= e($c['registration_fee'] ?? 0) ?>" data-quantity="<?= e($c['quantity'] ?? 0) ?>" data-bs-toggle="modal" data-bs-target="#invoiceModal">
                                         Invoice
                                     </button>
                                 </div>

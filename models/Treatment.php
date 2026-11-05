@@ -1,7 +1,10 @@
 <?php
 
-require_once 'BaseModel.php';
+require_once __DIR__ . '/BaseModel.php';
 
+/**
+ * Treatment - a dental treatment the clinic offers (table: treatments).
+ */
 class Treatment extends BaseModel
 {
     public $name;
@@ -12,60 +15,42 @@ class Treatment extends BaseModel
 
     protected function getTableName()
     {
-        return "treatments";
+        return 'treatments';
     }
 
     protected function addNewRec()
     {
-        $param = array(
-            ':name' => $this->name,
-            ':description' => $this->description,
-            ':treatment_fee' => $this->treatment_fee,
-            ':registration_fee' => $this->registration_fee,
-            ':is_active' => $this->is_active
-        );
-        return $this->pm->run(
-            "INSERT INTO 
-            treatments(name, description,treatment_fee, registration_fee, is_active) 
-            values(:name, :description, :treatment_fee, :registration_fee, :is_active)",
-            $param
+        return $this->pm->insert(
+            'INSERT INTO treatments (name, description, treatment_fee, registration_fee, is_active)
+             VALUES (:name, :description, :treatment_fee, :registration_fee, :is_active)',
+            [
+                ':name'             => $this->name,
+                ':description'      => $this->description,
+                ':treatment_fee'    => $this->treatment_fee,
+                ':registration_fee' => $this->registration_fee,
+                ':is_active'        => $this->is_active,
+            ]
         );
     }
 
     protected function updateRec()
     {
-        $param = array(
-            ':name' => $this->name,
-            ':description' => $this->description,
-            ':treatment_fee' => $this->treatment_fee,
-            ':registration_fee' => $this->registration_fee,
-            ':is_active' => $this->is_active,
-            ':id' => $this->id
+        return $this->pm->execute(
+            'UPDATE treatments
+             SET name = :name,
+                 description = :description,
+                 treatment_fee = :treatment_fee,
+                 registration_fee = :registration_fee,
+                 is_active = :is_active
+             WHERE id = :id',
+            [
+                ':name'             => $this->name,
+                ':description'      => $this->description,
+                ':treatment_fee'    => $this->treatment_fee,
+                ':registration_fee' => $this->registration_fee,
+                ':is_active'        => $this->is_active,
+                ':id'               => $this->id,
+            ]
         );
-
-        return $this->pm->run(
-            "UPDATE 
-            treatments 
-            SET 
-                name = :name, 
-                description = :description,
-                treatment_fee = :treatment_fee,
-                registration_fee = :registration_fee,
-                is_active = :is_active 
-            WHERE id = :id",
-            $param
-        );
-    }
-
-    function deleteTreatment($id)
-    {
-        $user = new Treatment();
-        $user->deleteRec($id);
-
-        if ($user) {
-            return true; // User udapted successfully
-        } else {
-            return false; // User update failed (likely due to database error)
-        }
     }
 }

@@ -2,13 +2,12 @@
 require_once('layouts/header.php');
 require_once __DIR__ . '/../../models/Appointment.php';
 
+// Operators see every appointment, doctors only see their own
 $appointmentModel = new Appointment();
-if ($permission == 'operator') {
+if (Auth::isOperator()) {
     $appointments = $appointmentModel->getAllWithDoctorAndTreatment();
-} elseif ($permission == 'doctor') {
-    $appointments = $appointmentModel->getAllWithDoctorAndTreatmentByUserId($userId);
 } else {
-    header('location: views/auth/login.php');
+    $appointments = $appointmentModel->getAllWithDoctorAndTreatmentByUserId($userId);
 }
 
 ?>
@@ -41,11 +40,11 @@ if ($permission == 'operator') {
             <table class="table table-striped mb-4">
                 <thead>
                     <tr>
-                        <?php if ($permission == 'operator') : ?> <th></th> <?php endif; ?>
+                        <?php if (Auth::isOperator()) : ?> <th></th> <?php endif; ?>
                         <th class="text-nowrap">Date</th>
                         <th class="text-nowrap">Appointment No</th>
                         <th class="text-nowrap">Treatment</th>
-                        <?php if ($permission == 'operator') : ?>
+                        <?php if (Auth::isOperator()) : ?>
                             <th class="text-nowrap">Doctor</th>
                         <?php endif; ?>
                         <th class="text-nowrap">Patient Name</th>
@@ -68,26 +67,26 @@ if ($permission == 'operator') {
                             $timeSlotTo = $time_slot_to->format('h:i A');
                     ?>
                             <tr>
-                                <?php if ($permission == 'operator') : ?> <td>
+                                <?php if (Auth::isOperator()) : ?> <td>
                                         <div>
                                             <a class="btn btn-sm btn-info m-2" href="<?= url('views/admin/appointment_edit.php?id=' . $c['id'] ?? '') ?>"><i class="bx bx-edit-alt"></i></a>
-                                            <!-- <a class="btn btn-sm btn-danger m-2" href="#" onclick="confirmDelete(<?= $c['id']; ?>)"><i class="bx bx-trash"></i></a> -->
+                                            <!-- <a class="btn btn-sm btn-danger m-2" href="#" onclick="confirmDelete(<?= e($c['id']) ?>)"><i class="bx bx-trash"></i></a> -->
                                         </div>
                                     </td>
                                 <?php endif; ?>
-                                <td class="text-nowrap appointment_date"><?= $c['appointment_date'] ?? ""; ?></td>
-                                <td class="text-nowrap">#<?= $c['id'] ?? ""; ?> - <?= $c['appointment_no'] ?? ""; ?> </td>
-                                <td class="text-nowrap"> <?= $c['treatment_name'] ?? ""; ?> </td>
-                                <?php if ($permission == 'operator') : ?>
-                                    <td class="text-nowrap"> <?= $c['doctor_name'] ?? ""; ?> </td>
+                                <td class="text-nowrap appointment_date"><?= e($c['appointment_date'] ?? "") ?></td>
+                                <td class="text-nowrap">#<?= e($c['id'] ?? "") ?> - <?= e($c['appointment_no'] ?? "") ?> </td>
+                                <td class="text-nowrap"> <?= e($c['treatment_name'] ?? "") ?> </td>
+                                <?php if (Auth::isOperator()) : ?>
+                                    <td class="text-nowrap"> <?= e($c['doctor_name'] ?? "") ?> </td>
                                 <?php endif; ?>
-                                <td class="text-nowrap"> <?= $c['patient_name'] ?? ""; ?> </td>
-                                <td class="text-nowrap"> <?= $timeSlotFrom ?? ""; ?> </td>
-                                <td class="text-nowrap"> <?= $timeSlotTo ?? ""; ?> </td>
-                                <td class="text-nowrap"> <?= $c['address'] ?? ""; ?> </td>
-                                <td class="text-nowrap"> <?= $c['telephone'] ?? ""; ?> </td>
-                                <td class="text-nowrap"> <?= $c['email'] ?? ""; ?> </td>
-                                <td class="text-nowrap"> <?= $c['nic'] ?? ""; ?> </td>
+                                <td class="text-nowrap"> <?= e($c['patient_name'] ?? "") ?> </td>
+                                <td class="text-nowrap"> <?= e($timeSlotFrom ?? "") ?> </td>
+                                <td class="text-nowrap"> <?= e($timeSlotTo ?? "") ?> </td>
+                                <td class="text-nowrap"> <?= e($c['address'] ?? "") ?> </td>
+                                <td class="text-nowrap"> <?= e($c['telephone'] ?? "") ?> </td>
+                                <td class="text-nowrap"> <?= e($c['email'] ?? "") ?> </td>
+                                <td class="text-nowrap"> <?= e($c['nic'] ?? "") ?> </td>
 
                             </tr>
                     <?php

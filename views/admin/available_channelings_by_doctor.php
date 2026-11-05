@@ -10,6 +10,7 @@ if (empty($doctorId) || empty($weekInputValue)) {
 }
 
 // Now safe to include header and load dependencies
+$requireOperator = true; // Only operators can open this page
 require_once('layouts/header.php');
 require_once __DIR__ . '/../../helpers/AppointmentScheduler.php';
 
@@ -38,7 +39,7 @@ $treatments = $scheduler->getTreatments();
                     <div class="row g-2">
                         <div class="col mb-4 form-group">
                             <label for="doctorId">Doctor</label>
-                            <input type="text" class="form-control" id="doctorId" value="<?= $doctor['name'] ?? "" ?>" disabled>
+                            <input type="text" class="form-control" id="doctorId" value="<?= e($doctor['name'] ?? "") ?>" disabled>
                         </div>
                         <div class="col mb-4 form-group">
                             <label for="appointmentNo">Appointment Number</label>
@@ -80,7 +81,10 @@ $treatments = $scheduler->getTreatments();
                                 <option selected="">Select Treatment</option>
                                 <?php
                                 foreach ($treatments as $treatment) {
-                                    echo '<option value="' . ($treatment['id'] ?? '') . '" data-treatment-fees="' . ($treatment['treatment_fee'] ?? 0) . '" data-registration-fees="' . ($treatment['registration_fee'] ?? 0) . '">' . $treatment['name'] ?? "" . '</option>';
+                                    echo '<option value="' . e($treatment['id'] ?? '') . '"'
+                                        . ' data-treatment-fees="' . e($treatment['treatment_fee'] ?? 0) . '"'
+                                        . ' data-registration-fees="' . e($treatment['registration_fee'] ?? 0) . '">'
+                                        . e($treatment['name'] ?? '') . '</option>';
                                 }
                                 ?>
                             </select>
@@ -94,7 +98,7 @@ $treatments = $scheduler->getTreatments();
                     </div>
 
                     <input type="hidden" name="action" value="book_appointment">
-                    <input type="hidden" id="doctor_id" name="doctor_id" value="<?= $doctorId ?>">
+                    <input type="hidden" id="doctor_id" name="doctor_id" value="<?= e($doctorId) ?>">
 
                     <input type="hidden" id="timeSlotFrom" name="time_slot_from">
                     <input type="hidden" id="timeSlotTo" name="time_slot_to">

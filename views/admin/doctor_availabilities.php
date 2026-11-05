@@ -1,10 +1,11 @@
 <?php
+$requireOperator = true; // Only operators can open this page
 require_once('layouts/header.php');
-include BASE_PATH . '/models/DoctorAvailability.php';
-//
+require_once BASE_PATH . '/models/DoctorAvailability.php';
+require_once BASE_PATH . '/models/Doctor.php';
 
-//
-// if (!isset($userId) && empty($userId)) dd('Access Denied...!');
+$availabilities = (new DoctorAvailability())->getAll();
+$doctors = (new Doctor())->getAllActive();   // for the doctor drop-down in the form
 ?>
 
 
@@ -14,7 +15,9 @@ include BASE_PATH . '/models/DoctorAvailability.php';
 
 
     <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Dashboard /</span> Doctor Availabilities
-
+        <button type="button" class="btn btn-primary float-end" id="add-availability-btn">
+            Add Availability
+        </button>
     </h4>
 
 
@@ -30,24 +33,33 @@ include BASE_PATH . '/models/DoctorAvailability.php';
                         <th>To</th>
                         <th>Doctor Name</th>
                         <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody class="table-border-bottom-0">
                     <?php
-                    $doctorAvailabilitiesObj = new DoctorAvailability();
-                    $availabilities = $doctorAvailabilitiesObj->getAll();
-
                     foreach ($availabilities as $key => $availability) {
                     ?>
                         <tr>
-                            <td><i class="fab fa-angular fa-lg text-danger me-3"></i> <strong class="text-capitalize"><?= $availability['day'] ?? '' ?></strong></td>
-                            <td><?= $availability['session_from'] ?? '' ?></td>
-                            <td><?= $availability['session_to'] ?? '' ?></td>
-                            <td><?= $availability['doctor_name'] ?? '' ?></td>
+                            <td><i class="fab fa-angular fa-lg text-danger me-3"></i> <strong class="text-capitalize"><?= e($availability['day'] ?? '') ?></strong></td>
+                            <td><?= e($availability['session_from'] ?? '') ?></td>
+                            <td><?= e($availability['session_to'] ?? '') ?></td>
+                            <td><?= e($availability['doctor_name'] ?? '') ?></td>
                             <td>
                                 <span class="badge bg-<?= $availability['is_active'] == 1 ? 'success' : 'danger'; ?>">
                                     <?= $availability['is_active'] == 1 ? 'Active' : ' Inactive'; ?>
                                 </span>
+                            </td>
+                            <td>
+                                <div class="dropdown">
+                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                        <i class="bx bx-dots-vertical-rounded"></i>
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item edit-availability-btn" href="javascript:void(0);" data-id="<?= e($availability['id']) ?>"><i class="bx bx-edit-alt me-1"></i> Edit</a>
+                                        <a class="dropdown-item delete-availability-btn" href="javascript:void(0);" data-id="<?= e($availability['id']) ?>"><i class="bx bx-trash me-1"></i> Delete</a>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                     <?php } ?>
@@ -64,178 +76,60 @@ include BASE_PATH . '/models/DoctorAvailability.php';
 
 <!-- / Content -->
 
-<!-- Create Modal -->
-<div class="modal fade" id="createTreatment" tabindex="-1" aria-hidden="true">
+<!-- Add / Edit modal (one form for both) -->
+<div class="modal fade" id="availability-modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            <form id="create-form" action="<?= url('services/treatment/ajax_fn.php') ?>" enctype="multipart/form-data">
+            <form id="availability-form" action="<?= url('services/availability/ajax_fn.php') ?>">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalCenterTitle">Add New Treatment</h5>
-                    <button
-                        type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+                    <h5 class="modal-title" id="availability-modal-title">Add Availability</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" name="action" value="create_treatment">
-                    <div class="row">
-                        <div class="col mb-3">
-                            <label for="nameWithTitle" class="form-label">Name</label>
-                            <input
-                                type="text"
-                                required
-                                id="name"
-                                name="name"
-                                class="form-control"
-                                placeholder="Enter Name" />
-                        </div>
+                    <!-- JavaScript sets the action (create_availability / update_availability) -->
+                    <input type="hidden" name="action" id="availability_action" value="create_availability">
+                    <input type="hidden" name="id" id="availability_id" value="">
+
+                    <div class="mb-3">
+                        <label for="availability_doctor" class="form-label">Doctor</label>
+                        <select class="form-select" id="availability_doctor" name="doctor_id" required>
+                            <option value="">Select Doctor</option>
+                            <?php foreach ($doctors as $doctor) : ?>
+                                <option value="<?= e($doctor['id']) ?>"><?= e($doctor['name']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="availability_day" class="form-label">Day</label>
+                        <select class="form-select" id="availability_day" name="day" required>
+                            <?php foreach (DoctorAvailability::DAYS as $day) : ?>
+                                <option value="<?= e($day) ?>"><?= e(ucfirst($day)) ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                     <div class="row">
                         <div class="col mb-3">
-                            <label for="nameWithTitle" class="form-label">Description</label>
-                            <input
-                                type="text"
-                                required
-                                id="description"
-                                name="description"
-                                class="form-control"
-                                placeholder="Enter Name" />
+                            <label for="availability_from" class="form-label">From</label>
+                            <input type="time" class="form-control" id="availability_from" name="session_from" required />
                         </div>
-                    </div>
-                    <div class="row">
                         <div class="col mb-3">
-                            <label for="nameWithTitle" class="form-label">Treatment Fee</label>
-                            <input
-                                type="number"
-                                required
-                                id="treatment_fee"
-                                name="treatment_fee"
-                                class="form-control"
-                                placeholder="Enter Name" />
+                            <label for="availability_to" class="form-label">To</label>
+                            <input type="time" class="form-control" id="availability_to" name="session_to" required />
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col mb-3">
-                            <label for="nameWithTitle" class="form-label">Registration Fee</label>
-                            <input
-                                type="number"
-                                required
-                                id="registration_fee"
-                                name="registration_fee"
-                                class="form-control"
-                                placeholder="Enter Name" />
-                        </div>
-                    </div>
-                    <div class="row ">
-                        <div class="mb-3">
-                            <label for="exampleFormControlSelect1" class="form-label">Status</label>
-                            <select class="form-select" id="is_active" aria-label="Default select example" name="is_active" required>
-                                <option value="1">Active</option>
-                                <option value="0">In Active</option>
-                            </select>
-                        </div>
+                    <div class="mb-3">
+                        <label for="availability_is_active" class="form-label">Status</label>
+                        <select class="form-select" id="availability_is_active" name="is_active" required>
+                            <option value="1">Active</option>
+                            <option value="0">In Active</option>
+                        </select>
                     </div>
 
-                    <div class="mb-3 mt-3">
-                        <div id="alert-container"></div>
-                    </div>
+                    <div id="availability-alert"></div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                        Close
-                    </button>
-                    <button type="button" class="btn btn-primary" id="create">Create</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Modal -->
-<div class="modal fade" id="edit-treatment-modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <form id="update-form" action="<?= url('services/treatment/ajax_fn.php') ?>" enctype="multipart/form-data">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalCenterTitle">Update Treatment</h5>
-                    <button
-                        type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal"
-                        aria-label="Close">
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" name="action" value="update_treatment">
-                    <input type="hidden" name="id" value="" id="id">
-                    <div class="row">
-                        <div class="col mb-3">
-                            <label for="nameWithTitle" class="form-label">Name</label>
-                            <input
-                                type="text"
-                                required
-                                id="edit_name"
-                                name="name"
-                                class="form-control"
-                                placeholder="Enter Name" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col mb-3">
-                            <label for="nameWithTitle" class="form-label">Description</label>
-                            <input
-                                type="text"
-                                required
-                                id="edit_description"
-                                name="description"
-                                class="form-control"
-                                placeholder="Enter Name" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col mb-3">
-                            <label for="nameWithTitle" class="form-label">Treatment Fee</label>
-                            <input
-                                type="number"
-                                required
-                                id="edit_treatment_fee"
-                                name="treatment_fee"
-                                class="form-control"
-                                placeholder="Enter Name" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col mb-3">
-                            <label for="nameWithTitle" class="form-label">Registration Fee</label>
-                            <input
-                                type="number"
-                                required
-                                id="edit_registration_fee"
-                                name="registration_fee"
-                                class="form-control"
-                                placeholder="Enter Name" />
-                        </div>
-                    </div>
-                    <div class="row ">
-                        <div class="mb-3">
-                            <label for="exampleFormControlSelect1" class="form-label">Status</label>
-                            <select class="form-select" id="edit_is_active" aria-label="Default select example" name="is_active" required>
-                                <option value="1">Active</option>
-                                <option value="0">In Active</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="mb-3 mt-3">
-                        <div id="edit-alert-container"></div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                        Close
-                    </button>
-                    <button type="button" class="btn btn-primary" id="update-treatment">Update</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="save-availability">Save</button>
                 </div>
             </form>
         </div>
@@ -243,7 +137,7 @@ include BASE_PATH . '/models/DoctorAvailability.php';
 </div>
 
 <!-- Delete confirmation modal -->
-<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="availability-delete-modal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -251,21 +145,19 @@ include BASE_PATH . '/models/DoctorAvailability.php';
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete this treatment?</p>
+                <p>Are you sure you want to delete this availability? Appointments that are already booked are not affected.</p>
                 <div id="delete-alert-container"></div>
-                <!-- hidden fields to store id and permission so JS can read them -->
-                <input type="hidden" id="delete_treatment_id" value="">
+                <input type="hidden" id="delete_availability_id" value="">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-availability">Delete</button>
             </div>
         </div>
     </div>
 </div>
 
-
 <?php
 require_once('layouts/footer.php');
 ?>
-<script src="<?= asset('assets/forms-js/treatments.js') ?>"></script>
+<script src="<?= asset('assets/forms-js/availabilities.js') ?>"></script>

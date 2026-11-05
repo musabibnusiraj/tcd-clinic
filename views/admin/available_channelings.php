@@ -1,4 +1,5 @@
 <?php
+$requireOperator = true; // Only operators can open this page
 require_once('layouts/header.php');
 require_once __DIR__ . '/../../models/Doctor.php';
 
@@ -26,21 +27,21 @@ $doctors = $doctorModel->getAllActive();
                             <div class="card-header"></div>
                             <div class="card-body">
                                 <div class="col-md-7 mx-auto">
-                                    <?php if (isset($doctor['photo']) || !empty($doctor['photo'])) : ?>
+                                    <?php if (!empty($doctor['photo'])) : ?>
                                         <img src="<?= asset('assets/uploads/' . $doctor['photo']) ?>" alt="user-avatar" class="d-block rounded m-3" width="150" id="uploadedAvatar">
                                     <?php else : ?>
                                         <img src="<?= asset('assets/img/avatars/1.png') ?>" alt="user-avatar" class="d-block rounded m-3" width="150" id="uploadedAvatar">
                                     <?php endif; ?>
                                 </div>
-                                <h5 class="card-title"><?= $name ?></h5>
+                                <h5 class="card-title"><?= e($name) ?></h5>
                                 <p class="card-text">
-                                    <?= $about ?>
+                                    <?= e($about) ?>
                                 </p>
                                 <div class="col-md-12">
-                                    <input class="form-control" type="week" name="week" id="week_date_<?= $doctor_id ?>" required>
+                                    <input class="form-control" type="week" name="week" id="week_date_<?= e($doctor_id) ?>" required>
                                 </div>
                                 <div class="col-md-12 mt-2 text-right">
-                                    <a href="javascript:void(0)" class="btn btn-primary bookNowBtn" data-doctor-id="<?= $doctor_id ?>">Book Now</a>
+                                    <a href="javascript:void(0)" class="btn btn-primary bookNowBtn" data-doctor-id="<?= e($doctor_id) ?>">Book Now</a>
                                 </div>
                             </div>
                         </div>

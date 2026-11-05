@@ -1,18 +1,18 @@
 <?php
-include __DIR__ . '/config.php';
-include BASE_PATH . '/helpers/AppManager.php';
-include BASE_PATH . '/models/Treatment.php';
-include BASE_PATH . '/models/Doctor.php';
-include BASE_PATH . '/models/DoctorAvailability.php';
 
-$treatmentObj = new Treatment();
-$treatments = $treatmentObj->getAll();
+/**
+ * Public home page of the clinic (no login needed).
+ * It shows the treatments, the main doctor and the doctor's weekly sessions.
+ */
+require_once __DIR__ . '/config.php';
+require_once BASE_PATH . '/models/Treatment.php';
+require_once BASE_PATH . '/models/Doctor.php';
+require_once BASE_PATH . '/models/DoctorAvailability.php';
 
-$doctorObj = new Doctor();
-$doctor = $doctorObj->getFirstActiveDoctor();
-
-$dravaObj = new DoctorAvailability();
-$availabilities = $dravaObj->getAllActiveByDoctorId($doctor['id'] ?? 0);
+// Load everything the page needs
+$treatments = (new Treatment())->getAll();
+$doctor = (new Doctor())->getFirstActiveDoctor();
+$availabilities = (new DoctorAvailability())->getAllActiveByDoctorId($doctor['id'] ?? 0);
 
 ?>
 <!DOCTYPE html>
@@ -170,7 +170,7 @@ $availabilities = $dravaObj->getAllActiveByDoctorId($doctor['id'] ?? 0);
                     <div class="md:w-1/3 mb-6 md:mb-0">
                         <div class="bg-gray-100 p-1 rounded-lg">
 
-                            <?php if (isset($doctor['photo']) || !empty($doctor['photo'])) : ?>
+                            <?php if (!empty($doctor['photo'])) : ?>
                                 <img src="<?= asset('assets/uploads/' . $doctor['photo']) ?>" alt="user-avatar" class="rounded-lg w-full h-auto object-cover">
                             <?php else : ?>
                                 <img src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="user-avatar" class="rounded-lg w-full h-auto object-cover">
@@ -179,11 +179,11 @@ $availabilities = $dravaObj->getAllActiveByDoctorId($doctor['id'] ?? 0);
                     </div>
                     <div class="md:w-2/3">
                         <h3 class="text-2xl font-bold text-gray-800 mb-2">
-                            Dr. <?= $doctor['name'] ?? '' ?>
+                            Dr. <?= e($doctor['name'] ?? '') ?>
                         </h3>
                         <!-- <p class="text-blue-600 font-medium mb-4">Dental Surgeon</p> -->
                         <p class="text-gray-600 mb-6">
-                            <?= $doctor['about'] ?? '' ?>
+                            <?= e($doctor['about'] ?? '') ?>
                         </p>
                         <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-600">
                             <p class="text-gray-700 italic">
@@ -221,7 +221,7 @@ $availabilities = $dravaObj->getAllActiveByDoctorId($doctor['id'] ?? 0);
                     </h2>
                     <div class="hr-blue mb-6"></div>
                     <p class="text-gray-600 max-w-3xl mx-auto">
-                        Dr. <?= $doctor['name'] ?? '' ?> is available for consultations on the following days.
+                        Dr. <?= e($doctor['name'] ?? '') ?> is available for consultations on the following days.
                         Contact us to book your appointment during these hours.
                     </p>
                 </div>
@@ -244,7 +244,7 @@ $availabilities = $dravaObj->getAllActiveByDoctorId($doctor['id'] ?? 0);
                                     <line x1="8" x2="8" y1="2" y2="6" />
                                     <line x1="3" x2="21" y1="10" y2="10" />
                                 </svg>
-                                <h3 class="text-xl font-bold text-gray-800 text-capitalize"><?= $availability['day'] ?? '' ?></h3>
+                                <h3 class="text-xl font-bold text-gray-800 text-capitalize"><?= e($availability['day'] ?? '') ?></h3>
                             </div>
                             <div class="flex items-center">
                                 <!-- Clock icon (Lucide-react replaced by simple SVG) -->
@@ -252,7 +252,7 @@ $availabilities = $dravaObj->getAllActiveByDoctorId($doctor['id'] ?? 0);
                                     <circle cx="12" cy="12" r="10" />
                                     <polyline points="12 6 12 12 16 14" />
                                 </svg>
-                                <p class="text-gray-600"><?= $timeSlotFrom ?? '' ?> - <?= $timeSlotTo ?? '' ?></p>
+                                <p class="text-gray-600"><?= e($timeSlotFrom ?? '') ?> - <?= e($timeSlotTo ?? '') ?></p>
                             </div>
                         </div>
                     <?php } ?>
@@ -320,101 +320,15 @@ $availabilities = $dravaObj->getAllActiveByDoctorId($doctor['id'] ?? 0);
                         <div class="bg-gray-50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
                             <div class="p-6">
                                 <h3 class="text-xl font-bold text-gray-800 mb-2">
-                                    <?= $treatment['name'] ?? '' ?>
+                                    <?= e($treatment['name'] ?? '') ?>
                                 </h3>
                                 <p class="text-gray-600 mb-4">
-                                    <?= $treatment['description'] ?? '' ?>
+                                    <?= e($treatment['description'] ?? '') ?>
                                 </p>
-                                <!-- <div class="bg-blue-50 py-2 px-4 rounded-md inline-block">
-                                <span class="font-medium text-blue-800">
-                                    LKR 3,500
-                                </span>
-                            </div> -->
                             </div>
                         </div>
                     <?php } ?>
-                    <!--
-
-                      <div class="bg-gray-50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">
-                                Cleanings
-                            </h3>
-                            <p class="text-gray-600 mb-4">
-                                Professional dental cleaning to remove plaque and tartar, leaving your teeth feeling fresh and looking bright.
-                            </p>
-                            <div class="bg-blue-50 py-2 px-4 rounded-md inline-block">
-                                <span class="font-medium text-blue-800">
-                                    LKR 3,500
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-gray-50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">
-                                Whitening
-                            </h3>
-                            <p class="text-gray-600 mb-4">
-                                Advanced teeth whitening treatments to remove stains and discoloration for a brighter, more confident smile.
-                            </p>
-                            <div class="bg-blue-50 py-2 px-4 rounded-md inline-block">
-                                <span class="font-medium text-blue-800">
-                                    LKR 12,000
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                
-                    <div class="bg-gray-50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">
-                                Filling
-                            </h3>
-                            <p class="text-gray-600 mb-4">
-                                Tooth-colored fillings to repair cavities and restore damaged teeth with natural-looking results.
-                            </p>
-                            <div class="bg-blue-50 py-2 px-4 rounded-md inline-block">
-                                <span class="font-medium text-blue-800">
-                                    LKR 5,000
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    
-              
-                    <div class="bg-gray-50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">
-                                Nerve Filling
-                            </h3>
-                            <p class="text-gray-600 mb-4">
-                                Specialized procedure to treat infected pulp tissue while preserving the natural tooth structure.
-                            </p>
-                            <div class="bg-blue-50 py-2 px-4 rounded-md inline-block">
-                                <span class="font-medium text-blue-800">
-                                    LKR 8,000
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                  
-                    <div class="bg-gray-50 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">
-                                Root Canal Therapy
-                            </h3>
-                            <p class="text-gray-600 mb-4">
-                                Complete treatment for infected tooth roots, eliminating pain and saving teeth that would otherwise require extraction.
-                            </p>
-                            <div class="bg-blue-50 py-2 px-4 rounded-md inline-block">
-                                <span class="font-medium text-blue-800">
-                                    LKR 15,000
-                                </span>
-                            </div>
-                        </div>
-                    </div>  
-                    -->
+                                
                 </div>
                 <div class="mt-12 bg-blue-50 p-6 rounded-lg">
                     <p class="text-gray-700 text-center">

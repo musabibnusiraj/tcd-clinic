@@ -1,6 +1,5 @@
 <?php
 require_once('layouts/header.php');
-// if (!isset($userId) && empty($userId)) dd('Access Denied...!');
 ?>
 
 
@@ -12,7 +11,7 @@ require_once('layouts/header.php');
                 <div class="d-flex align-items-end row">
                     <div class="col-sm-7">
                         <div class="card-body">
-                            <h5 class="card-title text-primary">Welcome <?= $username ?? ''  ?> 🎉</h5>
+                            <h5 class="card-title text-primary">Welcome <?= e($username ?? '') ?> 🎉</h5>
                             <p class="mb-4">
                                 You have done
                             </p>

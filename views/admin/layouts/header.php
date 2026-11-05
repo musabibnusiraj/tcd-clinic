@@ -1,18 +1,29 @@
 <?php
-include __DIR__ . '/../../../config.php';
-include BASE_PATH . '/helpers/AppManager.php';
+/**
+ * Admin layout - top part (menu and navbar).
+ *
+ * Every admin page includes this file first. It:
+ *   1. checks that the user is logged in (and has the right permission),
+ *   2. prepares $userId, $username and $permission for the page to use.
+ *
+ * A page that is only for operators sets this BEFORE including the header:
+ *   $requireOperator = true;
+ */
+require_once __DIR__ . '/../../../config.php';
+require_once BASE_PATH . '/helpers/Auth.php';
 
-$sm = AppManager::getSM();
-$userId = $sm->getAttribute("userId");
-$username = $sm->getAttribute("username");
-$permission = $sm->getAttribute("permission");
+if (!empty($requireOperator)) {
+    Auth::requireOperator();   // doctors are sent back to the dashboard
+} else {
+    Auth::requireLogin();      // visitors are sent to the login page
+}
 
-if (!isset($userId) && empty($userId))
-    header('Location: ../auth/login.php');;
+$userId = Auth::userId();
+$username = AppManager::getSM()->getAttribute('username');
+$permission = Auth::permission();
 
-// Extract the last filename from the URL
-$currentUrl = $_SERVER['SCRIPT_NAME'];
-$currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
+// Name of the current file, used to highlight the active menu item (e.g. "dashboard.php")
+$currentFilename = basename($_SERVER['SCRIPT_NAME']);
 
 ?>
 
@@ -100,7 +111,7 @@ $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
                         </a>
                     </li>
 
-                    <?php if ($permission == 'operator') : ?>
+                    <?php if (Auth::isOperator()) : ?>
                         <!-- Available Channelings-->
                         <li class="menu-item  <?= $currentFilename === "available_channelings.php" ? 'active' : '' ?> ">
                             <a href="<?= url('views/admin/available_channelings.php') ?>" class="menu-link">
@@ -116,7 +127,7 @@ $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
                             <div data-i18n="Analytics">Appointments</div>
                         </a>
                     </li>
-                    <?php if ($permission == 'operator') : ?>
+                    <?php if (Auth::isOperator()) : ?>
                         <li class="menu-item <?= $currentFilename === "payments.php" ? 'active' : '' ?> ">
                             <a href="<?= url('views/admin/payments.php') ?>" class="menu-link">
                                 <i class="menu-icon tf-icons  bx bx-wallet"></i>
@@ -197,8 +208,8 @@ $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
                                                     </div>
                                                 </div>
                                                 <div class="flex-grow-1">
-                                                    <span class="fw-semibold d-block"><?= $username ?? ''  ?></span>
-                                                    <small class="text-muted text-capitalize"><?= $permission ?? ''  ?></small>
+                                                    <span class="fw-semibold d-block"><?= e($username ?? '') ?></span>
+                                                    <small class="text-muted text-capitalize"><?= e($permission ?? '') ?></small>
                                                 </div>
                                             </div>
                                         </a>
@@ -208,7 +219,7 @@ $currentFilename = basename($currentUrl);  // e.g., "dashboard.php"
                                         <div class="dropdown-divider"></div>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" href="../../services/logout.php">
+                                        <a class="dropdown-item" href="<?= url('services/logout.php') ?>">
                                             <i class="bx bx-power-off me-2"></i>
                                             <span class="align-middle">Log Out</span>
                                         </a>

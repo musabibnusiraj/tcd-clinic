@@ -1,10 +1,9 @@
 <?php
+$requireOperator = true; // Only operators can open this page
 require_once('layouts/header.php');
-include BASE_PATH . '/models/Doctor.php';
-//
+require_once BASE_PATH . '/models/Doctor.php';
 
-//
-// if (!isset($userId) && empty($userId)) dd('Access Denied...!');
+$doctors = (new Doctor())->getAll();
 ?>
 
 
@@ -30,16 +29,13 @@ include BASE_PATH . '/models/Doctor.php';
                 </thead>
                 <tbody class="table-border-bottom-0">
                     <?php
-                    $doctorObj = new Doctor();
-                    $doctors = $doctorObj->getAll();
-
                     foreach ($doctors as $key => $doctor) {
                     ?>
                         <tr>
-                            <td><i class="fab fa-angular fa-lg text-danger me-3"></i> <strong><?= $doctor['name'] ?? '' ?></strong></td>
-                            <td><?= $doctor['about'] ?? '' ?></td>
+                            <td><i class="fab fa-angular fa-lg text-danger me-3"></i> <strong><?= e($doctor['name'] ?? '') ?></strong></td>
+                            <td><?= e($doctor['about'] ?? '') ?></td>
                             <td>
-                                <?php if (isset($doctor['photo']) || !empty($doctor['photo'])) : ?>
+                                <?php if (!empty($doctor['photo'])) : ?>
                                     <img src="<?= asset('assets/uploads/' . $doctor['photo']) ?>" alt="user-avatar" class="d-block rounded m-3" width="80" id="uploadedAvatar">
                                 <?php else : ?>
                                     <img src="<?= asset('assets/img/avatars/1.png') ?>" alt="user-avatar" class="d-block rounded m-3" width="80" id="uploadedAvatar">

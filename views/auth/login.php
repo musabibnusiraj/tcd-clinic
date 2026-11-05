@@ -1,6 +1,7 @@
 <?php
-include __DIR__ . '/../../config.php';
-require_once(__DIR__ . '/../../helpers/AppManager.php');
+require_once __DIR__ . '/../../config.php';
+require_once BASE_PATH . '/helpers/AppManager.php';
+
 $sm = AppManager::getSM();
 ?>
 

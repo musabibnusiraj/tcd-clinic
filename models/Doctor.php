@@ -1,6 +1,11 @@
 <?php
-require_once 'BaseModel.php';
 
+require_once __DIR__ . '/BaseModel.php';
+
+/**
+ * Doctor - the doctor profile of a user (table: doctors).
+ * Every doctor belongs to one user account (doctors.user_id).
+ */
 class Doctor extends BaseModel
 {
     public $name;
@@ -11,140 +16,136 @@ class Doctor extends BaseModel
 
     protected function getTableName()
     {
-        return "doctors";
+        return 'doctors';
     }
 
     protected function addNewRec()
     {
-        $param = array(
-            ':name' => $this->name,
-            ':about' => $this->about,
-            ':photo' => $this->photo,
-            ':is_active' => $this->is_active,
-            ':user_id' => $this->user_id
+        return $this->pm->insert(
+            'INSERT INTO doctors (name, about, photo, is_active, user_id)
+             VALUES (:name, :about, :photo, :is_active, :user_id)',
+            [
+                ':name'      => $this->name,
+                ':about'     => $this->about,
+                ':photo'     => $this->photo,
+                ':is_active' => $this->is_active,
+                ':user_id'   => $this->user_id,
+            ]
         );
-
-        return $this->pm->run("INSERT INTO doctors(name, about, photo, is_active, user_id) VALUES (:name, :about, :photo, :is_active, :user_id)", $param);
     }
 
     protected function updateRec()
     {
-        $param = array(
-            ':name' => $this->name,
-            ':about' => $this->about,
-            ':photo' => $this->photo,
-            ':is_active' => $this->is_active,
-            ':user_id' => $this->user_id,
-            ':id' => $this->id
+        return $this->pm->execute(
+            'UPDATE doctors
+             SET name = :name, about = :about, photo = :photo,
+                 is_active = :is_active, user_id = :user_id
+             WHERE id = :id',
+            [
+                ':name'      => $this->name,
+                ':about'     => $this->about,
+                ':photo'     => $this->photo,
+                ':is_active' => $this->is_active,
+                ':user_id'   => $this->user_id,
+                ':id'        => $this->id,
+            ]
         );
-
-        return $this->pm->run("UPDATE doctors SET name = :name, about = :about, photo = :photo, is_active = :is_active, user_id = :user_id WHERE id = :id", $param);
     }
 
-
-    function createDoctor($name, $about, $user_id, $photo = null, $is_active = 1)
+    /**
+     * Creates the doctor profile for a user.
+     *
+     * @return int The new doctor's id
+     */
+    public function createDoctor($name, $about, $userId, $photo = null, $isActive = 1)
     {
-        $doctorModel = new Doctor();
-        $doctorModel->name = $name;
-        $doctorModel->about = $about;
-        $doctorModel->user_id = $user_id;
-        $doctorModel->is_active = $is_active;
-        $doctorModel->photo = $photo;
-        $doctorModel->save();
+        $doctor = new Doctor();
+        $doctor->name = $name;
+        $doctor->about = $about;
+        $doctor->user_id = $userId;
+        $doctor->photo = $photo;
+        $doctor->is_active = $isActive;
 
-        if ($doctorModel) {
-            return true; // Doctor created successfully
-        } else {
-            return false; // Doctor creation failed (likely due to database error)
-        }
+        return $doctor->save();
     }
 
-    function updateDoctor($id, $name = null, $about = null, $user_id = null, $photo = null, $is_active = null)
+    /**
+     * Updates the name and "about" text of a doctor.
+     * The photo, active flag and user are kept as they are.
+     *
+     * @return bool False when the doctor does not exist
+     */
+    public function updateDetails($doctorId, $name, $about)
     {
-
-        // Initialize the Doctor model
-        $doctorModel = new Doctor();
-
-        // Retrieve the doctor by ID
-        $existingDoctor = $doctorModel->getById($id); // Assuming getById method exists
-
-        if (!$existingDoctor) {
-            return false; // Doctor not found
-        }
-
-        // Set all properties from the array data to the object
-        foreach ($existingDoctor as $key => $value) {
-            if (property_exists($doctorModel, $key)) {
-                $doctorModel->$key = $value;
-            }
-        }
-
-        // Update properties only if values are provided
-        if ($name !== null) {
-            $doctorModel->name = $name;
-        }
-
-        if ($about !== null) {
-            $doctorModel->about = $about;
-        }
-
-        if ($photo !== null) {
-            $doctorModel->photo = $photo;
-        }
-
-        if ($is_active !== null) {
-            $doctorModel->is_active = $is_active;
-        }
-
-        // Save the changes
-        $updated = $doctorModel->save(); // Assuming save method exists
-
-        return $updated ? true : false;
-    }
-
-    function deleteDoctorByUserId($userId)
-    {
-        // Find the doctor associated with the user ID
-        $doctor = $this->getDoctorByUserId($userId);
-        if (!$doctor) {
-            return true; // No doctor found for the user, proceed with user deletion
-        }
-
-        if (empty($doctor['id']))  return false;
-        $doctorId = $doctor['id'];
-
-        // Check if doctor has appointments
-        if ($this->hasAppointments($doctorId)) {
-            // If doctor has appointments, return false to prevent deletion
+        $existing = $this->getById($doctorId);
+        if (!$existing) {
             return false;
         }
 
-        // Delete doctor record
-        return $this->deleteRec($doctorId);
+        // Load the current row first so the fields we do not change stay the same
+        $doctor = new Doctor();
+        $doctor->fill($existing, ['id', 'name', 'about', 'photo', 'is_active', 'user_id']);
+
+        $doctor->name = $name;
+        $doctor->about = $about;
+        $doctor->save();
+
+        return true;
     }
 
+    /**
+     * Deletes the doctor profile that belongs to a user.
+     *
+     * @return bool True when there is nothing left to delete,
+     *              false when the doctor has appointments (cannot be deleted)
+     */
+    public function deleteDoctorByUserId($userId)
+    {
+        $doctor = $this->getDoctorByUserId($userId);
+
+        // The user has no doctor profile: nothing to delete
+        if (!$doctor) {
+            return true;
+        }
+
+        // Keep the appointment history: do not delete a doctor who has appointments
+        if ($this->hasAppointments($doctor['id'])) {
+            return false;
+        }
+
+        $this->deleteById($doctor['id']);
+        return true;
+    }
+
+    /**
+     * True when the doctor has at least one appointment.
+     */
     public function hasAppointments($doctorId)
     {
-        // Check if the doctor has any appointments
-        $param = array(':doctor_id' => $doctorId);
-        $appointments = $this->pm->run("SELECT COUNT(*) AS appointment_count FROM appointments WHERE doctor_id = :doctor_id", $param);
+        $row = $this->pm->fetchOne(
+            'SELECT COUNT(*) AS appointment_count FROM appointments WHERE doctor_id = :doctor_id',
+            [':doctor_id' => $doctorId]
+        );
 
-        return $appointments[0]['appointment_count'] > 0;
+        return $row['appointment_count'] > 0;
     }
 
-    public function getDoctorByUserId($id)
+    /**
+     * Returns the doctor profile of a user (false when the user is not a doctor).
+     */
+    public function getDoctorByUserId($userId)
     {
-        $param = array(':id' => $id);
-        return $this->pm->run("SELECT * FROM " . $this->getTableName() . " WHERE user_id = :id", $param, true);
+        return $this->pm->fetchOne(
+            'SELECT * FROM doctors WHERE user_id = :user_id',
+            [':user_id' => $userId]
+        );
     }
 
+    /**
+     * Returns the active doctor with the smallest id (shown on the public home page).
+     */
     public function getFirstActiveDoctor()
     {
-        $param = array(':is_active' => 1);
-        return $this->pm->run(
-            "SELECT * FROM " . $this->getTableName() . " WHERE is_active = :is_active ORDER BY id ASC LIMIT 1",
-            $param,
-            true
-        );
+        return $this->pm->fetchOne('SELECT * FROM doctors WHERE is_active = 1 ORDER BY id ASC LIMIT 1');
     }
 }

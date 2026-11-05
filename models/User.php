@@ -1,188 +1,118 @@
 <?php
 
-require_once 'BaseModel.php';
+require_once __DIR__ . '/BaseModel.php';
 
+/**
+ * User - a person who can log in (table: users).
+ * The permission is either 'operator' (admin) or 'doctor'.
+ *
+ * The password is stored as a hash (never as plain text).
+ */
 class User extends BaseModel
 {
     public $username;
+    public $email;
+    public $password;      // Plain text while saving; the database only gets the hash
     public $permission;
     public $is_active;
-    private $email;
-    private $password;
 
-    function getTableName()
+    protected function getTableName()
     {
         return 'users';
     }
 
+    /**
+     * Inserts a new user. The password is hashed before it is stored.
+     *
+     * @return int The new user's id
+     */
     protected function addNewRec()
     {
-        // Hash the password before storing it
-        $this->password = password_hash($this->password, PASSWORD_DEFAULT);
-
-        $param = array(
-            ':username' => $this->username,
-            ':password' => $this->password,
-            ':permission' => $this->permission,
-            ':email' => $this->email,
-            ':is_active' => $this->is_active
+        return $this->pm->insert(
+            'INSERT INTO users (username, password, permission, email, is_active)
+             VALUES (:username, :password, :permission, :email, :is_active)',
+            [
+                ':username'   => $this->username,
+                ':password'   => password_hash($this->password, PASSWORD_DEFAULT),
+                ':permission' => $this->permission,
+                ':email'      => strtolower($this->email),
+                ':is_active'  => $this->is_active,
+            ]
         );
-
-        return $this->pm->run("INSERT INTO " . $this->getTableName() . "(username, password,permission,email,is_active) values(:username, :password,:permission,:email,:is_active)", $param);
     }
 
+    /**
+     * Updates a user. The password is only changed when a new one was given.
+     */
     protected function updateRec()
     {
-        // Check if the new username or email already exists (excluding the current user's record)
-        $existingUser = $this->getUserByUsernameOrEmailWithId($this->username, $this->email, $this->id);
-        if ($existingUser) {
-            // Handle the error (return an appropriate message or throw an exception)
-            return false; // Or throw an exception with a specific error message
-        }
+        $sql = 'UPDATE users
+                SET username = :username,
+                    permission = :permission,
+                    email = :email,
+                    is_active = :is_active';
 
-        // Hash the password if it is being updated
-        if (!empty($this->password)) {
-            $this->password = password_hash($this->password, PASSWORD_DEFAULT);
-        }
-
-        $param = array(
-            ':username' => $this->username,
-            ':password' => $this->password,
+        $params = [
+            ':username'   => $this->username,
             ':permission' => $this->permission,
-            ':email' => $this->email,
-            ':is_active' => $this->is_active,
-            ':id' => $this->id
-        );
-        return $this->pm->run(
-            "UPDATE " . $this->getTableName() . " 
-            SET 
-                username = :username, 
-                password = :password,
-                permission = :permission,  
-                email = :email,
-                is_active = :is_active
-            WHERE id = :id",
-            $param
-        );
+            ':email'      => strtolower($this->email),
+            ':is_active'  => $this->is_active,
+            ':id'         => $this->id,
+        ];
+
+        // Add the password column only when a new password was typed
+        if (!empty($this->password)) {
+            $sql .= ', password = :password';
+            $params[':password'] = password_hash($this->password, PASSWORD_DEFAULT);
+        }
+
+        return $this->pm->execute($sql . ' WHERE id = :id', $params);
     }
 
-    public function getUserByUsernameOrEmailWithId($username, $email, $excludeUserId = null)
+    /**
+     * True when another user already uses this username or email.
+     *
+     * @param int|null $excludeUserId Ignore this user (use it when editing a user)
+     */
+    public function isUsernameOrEmailTaken($username, $email, $excludeUserId = null)
     {
-        $param = array(':username' => $username, ':email' => $email);
-
-        $query = "SELECT * FROM " . $this->getTableName() . " 
-                  WHERE (username = :username OR email = :email)";
+        $sql = 'SELECT id FROM users WHERE (username = :username OR email = :email)';
+        $params = [':username' => $username, ':email' => strtolower($email)];
 
         if ($excludeUserId !== null) {
-            $query .= " AND id != :excludeUserId";
-            $param[':excludeUserId'] = $excludeUserId;
+            $sql .= ' AND id != :exclude_id';
+            $params[':exclude_id'] = $excludeUserId;
         }
 
-        $result = $this->pm->run($query, $param);
-
-        return $result; // Return the user if found, or false if not found
+        return (bool) $this->pm->fetchOne($sql, $params);
     }
 
-    public function getUserByUsernameOrEmail($username, $email)
+    /**
+     * Finds a user by email (used by the login page).
+     *
+     * @return array|false The user row, or false when not found
+     */
+    public function getByEmail($email)
     {
-        $email = strtolower($email);
-        $param = array(
-            ':username' => $username,
-            ':email' => $email
+        return $this->pm->fetchOne(
+            'SELECT * FROM users WHERE email = :email',
+            [':email' => strtolower($email)]
         );
-
-        $sql = "SELECT * FROM " . $this->getTableName() . " WHERE username = :username OR email = :email";
-        $result = $this->pm->run($sql, $param);
-
-        if (!empty($result)) {  // Check if the array is not empty
-            $user = $result[0]; // Assuming the first row contains the user data
-            return $user;
-        } else {
-            return null;
-        }
     }
 
-
-    function createUser($username, $password, $permission, $email, $is_active = 1)
-    {
-        $user = new User();
-        // Check if username or email already exists
-        $existingUser = $user->getUserByUsernameOrEmail($username, $email);
-
-        if ($existingUser) {
-            // Handle the error (return an appropriate message or throw an exception)
-            return false; // Or throw an exception with a specific error message
-        }
-
-        $user = new User();
-        $user->username = $username;
-        $user->password = $password;
-        $user->permission = $permission;
-        $user->email = strtolower($email);
-        $user->is_active = $is_active;
-        $user->addNewRec();
-
-        if ($user) {
-            return $user; // User created successfully
-        } else {
-            return false; // User creation failed (likely due to database error)
-        }
-    }
-
-    function updateUser($id, $username, $password, $permission, $email, $is_active = 1)
-    {
-        $userModel = new User();
-
-        // Check if username or email already exists
-        $existingUser = $userModel->getUserByUsernameOrEmailWithId($username, $email, $id);
-        if ($existingUser) {
-            // Handle the error (return an appropriate message or throw an exception)
-            return false; // Or throw an exception with a specific error message
-        }
-
-        $user = new User();
-        $user->id = $id;
-        $user->username = $username;
-        $user->password = $password;
-        $user->permission = $permission;
-        $user->email = $email;
-        $user->is_active = $is_active;
-        $user->updateRec();
-
-        if ($user) {
-            return true; // User udapted successfully
-        } else {
-            return false; // User update failed (likely due to database error)
-        }
-    }
-
-    function deleteUser($id)
-    {
-        $user = new User();
-        $user->deleteRec($id);
-
-        if ($user) {
-            return true; // User udapted successfully
-        } else {
-            return false; // User update failed (likely due to database error)
-        }
-    }
-
-    public function getLastInsertedUserId()
-    {
-        $result = $this->pm->run('SELECT MAX(id) as lastInsertedId FROM users', null, true);
-        return $result['lastInsertedId'] ?? 100;
-    }
-
-
+    /**
+     * Returns a user together with the doctor profile (if the user is a doctor).
+     */
     public function getUserWithDoctorById($id)
     {
-        $param = array(':id' => $id);
-        return $this->pm->run("
-            SELECT users.id,users.username,users.email,users.is_active,users.permission, doctors.id AS doctor_id, doctors.name,doctors.about,doctors.photo,doctors.is_active as doctor_is_active
-            FROM " . $this->getTableName() . " AS users
-            LEFT JOIN doctors ON doctors.user_id = users.id
-            WHERE users.id = :id
-        ", $param, true);
+        return $this->pm->fetchOne(
+            'SELECT users.id, users.username, users.email, users.is_active, users.permission,
+                    doctors.id AS doctor_id, doctors.name, doctors.about, doctors.photo,
+                    doctors.is_active AS doctor_is_active
+             FROM users
+             LEFT JOIN doctors ON doctors.user_id = users.id
+             WHERE users.id = :id',
+            [':id' => $id]
+        );
     }
 }

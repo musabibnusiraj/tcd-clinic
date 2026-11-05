@@ -1,7 +1,10 @@
 <?php
 
-require_once 'BaseModel.php';
+require_once __DIR__ . '/BaseModel.php';
 
+/**
+ * Appointment - a patient's booked time slot with a doctor (table: appointments).
+ */
 class Appointment extends BaseModel
 {
     public $appointment_no;
@@ -16,117 +19,95 @@ class Appointment extends BaseModel
     public $time_slot_to;
     public $appointment_date;
 
+    /** SQL used by every "list" query: appointment + treatment name + doctor name */
+    const SELECT_WITH_DETAILS =
+    'SELECT apt.*, tmt.name AS treatment_name, dr.name AS doctor_name
+         FROM appointments AS apt
+         INNER JOIN doctors AS dr ON apt.doctor_id = dr.id
+         INNER JOIN treatments AS tmt ON tmt.id = apt.treatment_id';
+
     protected function getTableName()
     {
-        return "appointments";
-    }
-
-    public function getById($id)
-    {
-        $param = array(':id' => $id);
-        return $this->pm->run(
-            "SELECT *, tm.name AS treatment_name, dr.name AS doctor_name, ap.id AS id FROM appointments AS ap 
-            JOIN treatments AS tm ON tm.id = ap.treatment_id 
-            JOIN doctors AS dr ON dr.id = ap.doctor_id 
-            WHERE ap.id = :id",
-            $param,
-            true
-        );
-    }
-
-    // Method to retrieve a record by its ID or appointment_no from the associated table
-    public function getByIdOrAppointmentNo($id, $appointmentNo)
-    {
-        // Check if either $id or $appointmentNo is provided
-        if (!empty($id)) {
-            $condition = "id = :id";
-            $param = array(':id' => $id);
-        } elseif (!empty($appointmentNo)) {
-            $condition = "appointment_no = :appointment_no";
-            $param = array(':appointment_no' => $appointmentNo);
-        } else {
-            // Both $id and $appointmentNo are empty, return null or handle it accordingly
-            return null;
-        }
-
-        // Build and execute the SQL query
-        return $this->pm->run("SELECT * FROM " . $this->getTableName() . " WHERE $condition", $param, true);
-    }
-
-    // Method to retrieve a record by both ID and appointment_no from the associated table
-    public function getByIdAndAppointmentNo($id, $appointmentNo)
-    {
-        // Check if both $id and $appointmentNo are provided
-        if (!empty($id) && !empty($appointmentNo)) {
-            $condition = "id = :id AND appointment_no = :appointment_no";
-            $param = array(':id' => $id, ':appointment_no' => $appointmentNo);
-        } else {
-            // Either $id or $appointmentNo is missing, return null or handle it accordingly
-            return null;
-        }
-
-        // Build and execute the SQL query
-        return $this->pm->run("SELECT * FROM " . $this->getTableName() . " WHERE $condition", $param, true);
+        return 'appointments';
     }
 
     protected function addNewRec()
     {
-        $params = array(
-            ':appointment_no' => $this->appointment_no,
-            ':doctor_id' => $this->doctor_id,
-            ':patient_name' => $this->patient_name,
-            ':address' => $this->address,
-            ':telephone' => $this->telephone,
-            ':email' => $this->email,
-            ':nic' => $this->nic,
-            ':treatment_id' => $this->treatment_id,
-            ':time_slot_from' => $this->time_slot_from,
-            ':time_slot_to' => $this->time_slot_to,
-            ':appointment_date' => $this->appointment_date
+        return $this->pm->insert(
+            'INSERT INTO appointments (appointment_no, doctor_id, patient_name, address, telephone,
+                                       email, nic, treatment_id, time_slot_from, time_slot_to, appointment_date)
+             VALUES (:appointment_no, :doctor_id, :patient_name, :address, :telephone,
+                     :email, :nic, :treatment_id, :time_slot_from, :time_slot_to, :appointment_date)',
+            [
+                ':appointment_no'   => $this->appointment_no,
+                ':doctor_id'        => $this->doctor_id,
+                ':patient_name'     => $this->patient_name,
+                ':address'          => $this->address,
+                ':telephone'        => $this->telephone,
+                ':email'            => $this->email,
+                ':nic'              => $this->nic,
+                ':treatment_id'     => $this->treatment_id,
+                ':time_slot_from'   => $this->time_slot_from,
+                ':time_slot_to'     => $this->time_slot_to,
+                ':appointment_date' => $this->appointment_date,
+            ]
         );
-
-        $result = $this->pm->insertAndGetLastRowId("INSERT INTO appointments(appointment_no,doctor_id, patient_name, address, telephone, email, nic, treatment_id, time_slot_from, time_slot_to, appointment_date)
-            VALUES(:appointment_no, :doctor_id, :patient_name, :address, :telephone, :email, :nic, :treatment_id, :time_slot_from, :time_slot_to, :appointment_date)", $params);
-
-        // Check the result and return success or failure accordingly
-        return $result;
     }
 
+    /**
+     * Only the patient's contact details can be edited after booking.
+     * (The doctor, treatment, date and time are fixed.)
+     */
     protected function updateRec()
     {
-        $params = array(
-            ':patient_name' => $this->patient_name,
-            ':address' => $this->address,
-            ':telephone' => $this->telephone,
-            ':email' => $this->email,
-            ':nic' => $this->nic,
-            ':id' => $this->id
-        );
-
-        return $this->pm->run(
-            "UPDATE appointments
-            SET 
-                patient_name = :patient_name, 
-                address = :address, 
-                telephone = :telephone, 
-                email = :email, 
-                nic = :nic
-            WHERE id = :id",
-            $params
+        return $this->pm->execute(
+            'UPDATE appointments
+             SET patient_name = :patient_name,
+                 address = :address,
+                 telephone = :telephone,
+                 email = :email,
+                 nic = :nic
+             WHERE id = :id',
+            [
+                ':patient_name' => $this->patient_name,
+                ':address'      => $this->address,
+                ':telephone'    => $this->telephone,
+                ':email'        => $this->email,
+                ':nic'          => $this->nic,
+                ':id'           => $this->id,
+            ]
         );
     }
 
+    /**
+     * Returns one appointment with its treatment name and doctor name.
+     *
+     * @return array|false The row, or false when it does not exist
+     */
+    public function getByIdWithDetails($id)
+    {
+        return $this->pm->fetchOne(
+            self::SELECT_WITH_DETAILS . ' WHERE apt.id = :id',
+            [':id' => $id]
+        );
+    }
+
+    /**
+     * Returns every appointment (newest first) - used by operators.
+     */
     public function getAllWithDoctorAndTreatment()
     {
-        return $this->pm->run("SELECT apt.*, tmt.name AS treatment_name, dr.name AS doctor_name FROM appointments AS apt INNER JOIN  doctors AS dr ON apt.doctor_id = dr.id INNER JOIN treatments AS tmt ON tmt.id = apt.treatment_id order by id desc");
+        return $this->pm->fetchAll(self::SELECT_WITH_DETAILS . ' ORDER BY apt.id DESC');
     }
 
-    public function getAllWithDoctorAndTreatmentByUserId($user_id)
+    /**
+     * Returns only the appointments of the doctor who owns $userId (newest first).
+     */
+    public function getAllWithDoctorAndTreatmentByUserId($userId)
     {
-        $param = array(':user_id' => $user_id);
-        return $this->pm->run(
-            "SELECT apt.*, tmt.name AS treatment_name, dr.name AS doctor_name FROM appointments AS apt INNER JOIN  doctors AS dr ON apt.doctor_id = dr.id INNER JOIN treatments AS tmt ON tmt.id = apt.treatment_id where dr.user_id = :user_id order by id desc",
-            $param
+        return $this->pm->fetchAll(
+            self::SELECT_WITH_DETAILS . ' WHERE dr.user_id = :user_id ORDER BY apt.id DESC',
+            [':user_id' => $userId]
         );
     }
 }

@@ -1,10 +1,9 @@
 <?php
+$requireOperator = true; // Only operators can open this page
 require_once('layouts/header.php');
-include BASE_PATH . '/models/Treatment.php';
-//
+require_once BASE_PATH . '/models/Treatment.php';
 
-//
-// if (!isset($userId) && empty($userId)) dd('Access Denied...!');
+$treatments = (new Treatment())->getAll();
 ?>
 
 
@@ -42,16 +41,13 @@ include BASE_PATH . '/models/Treatment.php';
                 </thead>
                 <tbody class="table-border-bottom-0">
                     <?php
-                    $treatmentObj = new Treatment();
-                    $treatments = $treatmentObj->getAll();
-
                     foreach ($treatments as $key => $treatment) {
                     ?>
                         <tr>
-                            <td><i class="fab fa-angular fa-lg text-danger me-3"></i> <strong><?= $treatment['name'] ?? '' ?></strong></td>
-                            <td><?= $treatment['description'] ?? '' ?></td>
-                            <td><?= $treatment['registration_fee'] ?? '' ?></td>
-                            <td><?= $treatment['treatment_fee'] ?? '' ?></td>
+                            <td><i class="fab fa-angular fa-lg text-danger me-3"></i> <strong><?= e($treatment['name'] ?? '') ?></strong></td>
+                            <td><?= e($treatment['description'] ?? '') ?></td>
+                            <td><?= e($treatment['registration_fee'] ?? '') ?></td>
+                            <td><?= e($treatment['treatment_fee'] ?? '') ?></td>
                             <td>
                                 <span class="badge bg-<?= $treatment['is_active'] == 1 ? 'success' : 'danger'; ?>">
                                     <?= $treatment['is_active'] == 1 ? 'Active' : ' Inactive'; ?>
@@ -64,8 +60,8 @@ include BASE_PATH . '/models/Treatment.php';
                                     </button>
                                     <div class="dropdown-menu">
 
-                                        <a class="dropdown-item edit-treatment-btn" data-id="<?= $treatment['id']; ?>"><i class="bx bx-edit-alt me-1"></i> Edit</a>
-                                        <a class="dropdown-item delete-treatment-btn" data-id="<?= $treatment['id']; ?>"><i class="bx bx-trash me-1"></i> Delete</a>
+                                        <a class="dropdown-item edit-treatment-btn" data-id="<?= e($treatment['id']) ?>"><i class="bx bx-edit-alt me-1"></i> Edit</a>
+                                        <a class="dropdown-item delete-treatment-btn" data-id="<?= e($treatment['id']) ?>"><i class="bx bx-trash me-1"></i> Delete</a>
 
                                     </div>
                                 </div>

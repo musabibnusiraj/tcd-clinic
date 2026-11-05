@@ -1,13 +1,15 @@
 <?php
 
-include __DIR__ . '/config.php';
-include BASE_PATH . '/helpers/AppManager.php';
+/**
+ * Entry point of the admin area.
+ * Sends logged-in users to the dashboard and everyone else to the login page.
+ */
+require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/helpers/Auth.php';
 
-$sm = AppManager::getSM();
-$username = $sm->getAttribute("username");
-
-if (isset($username)) {
-    header('location: views/admin/dashboard.php');
+if (Auth::isLoggedIn()) {
+    header('Location: ' . url('views/admin/dashboard.php'));
 } else {
-    header('location: views/auth/login.php');
+    header('Location: ' . url('views/auth/login.php'));
 }
+exit;
