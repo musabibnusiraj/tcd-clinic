@@ -46,7 +46,7 @@ function protocol()
 }
 
 /**
- * Returns the root URL of the application, e.g. "http://localhost/tcd-clinic".
+ * Returns the root URL of the application, e.g. "https://tcd-clinic.test".
  */
 function current_domain()
 {
