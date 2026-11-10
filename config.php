@@ -22,7 +22,7 @@ define('DB_NAME', 'clinic');
 // Application settings
 // ---------------------------------------------------------------------
 define('BASE_PATH', __DIR__);          // Absolute folder path of the project (for PHP includes)
-define('APP_FOLDER', '/tcd-clinic');   // Folder name under the web root (used to build URLs)
+define('APP_FOLDER', '/');   // Folder name under the web root (used to build URLs)
 define('SLOT_DURATION', 'PT60M');      // Length of one appointment slot (ISO 8601: 60 minutes)
 
 // Permission names stored in the `users.permission` column
