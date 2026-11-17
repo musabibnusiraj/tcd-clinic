@@ -308,6 +308,7 @@ $users = (new User())->getAll();
         </div>
     </div>
 </div>
+
 <?php
 require_once('layouts/footer.php');
 ?>
